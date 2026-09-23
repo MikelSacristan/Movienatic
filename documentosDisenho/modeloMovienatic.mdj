@@ -63,7 +63,7 @@
 											"top": 279,
 											"width": 119,
 											"height": 13,
-											"text": "Usuario"
+											"text": "User"
 										},
 										{
 											"_type": "LabelView",
@@ -135,7 +135,7 @@
 											"top": 302,
 											"width": 119,
 											"height": 13,
-											"text": "+nombreUsuario",
+											"text": "+username",
 											"horizontalAlignment": 0
 										},
 										{
@@ -169,7 +169,7 @@
 											"top": 332,
 											"width": 119,
 											"height": 13,
-											"text": "+correo",
+											"text": "+email",
 											"horizontalAlignment": 0
 										},
 										{
@@ -186,7 +186,7 @@
 											"top": 347,
 											"width": 119,
 											"height": 13,
-											"text": "+fotoURL",
+											"text": "+photoURL",
 											"horizontalAlignment": 0
 										}
 									],
@@ -381,7 +381,7 @@
 											"top": 302,
 											"width": 122.03076171875,
 											"height": 13,
-											"text": "+texto",
+											"text": "+text",
 											"horizontalAlignment": 0
 										},
 										{
@@ -398,7 +398,7 @@
 											"top": 317,
 											"width": 122.03076171875,
 											"height": 13,
-											"text": "+calificacion",
+											"text": "+rating",
 											"horizontalAlignment": 0
 										},
 										{
@@ -415,7 +415,7 @@
 											"top": 332,
 											"width": 122.03076171875,
 											"height": 13,
-											"text": "+numeroMeGusta",
+											"text": "+likeNumber",
 											"horizontalAlignment": 0
 										},
 										{
@@ -432,7 +432,7 @@
 											"top": 347,
 											"width": 122.03076171875,
 											"height": 13,
-											"text": "+numeroNoMeGusta",
+											"text": "+dislikeNumber",
 											"horizontalAlignment": 0
 										}
 									],
@@ -555,7 +555,7 @@
 											"top": 271,
 											"width": 74.34716796875,
 											"height": 13,
-											"text": "Pelicula"
+											"text": "Movie"
 										},
 										{
 											"_type": "LabelView",
@@ -627,7 +627,7 @@
 											"top": 294,
 											"width": 74.34716796875,
 											"height": 13,
-											"text": "+nombre",
+											"text": "+name",
 											"horizontalAlignment": 0
 										},
 										{
@@ -644,7 +644,7 @@
 											"top": 309,
 											"width": 74.34716796875,
 											"height": 13,
-											"text": "+descripcion",
+											"text": "+description",
 											"horizontalAlignment": 0
 										},
 										{
@@ -661,7 +661,7 @@
 											"top": 324,
 											"width": 74.34716796875,
 											"height": 13,
-											"text": "+genero",
+											"text": "+genre",
 											"horizontalAlignment": 0
 										},
 										{
@@ -678,7 +678,7 @@
 											"top": 339,
 											"width": 74.34716796875,
 											"height": 13,
-											"text": "+reparto",
+											"text": "+casting",
 											"horizontalAlignment": 0
 										},
 										{
@@ -695,7 +695,7 @@
 											"top": 354,
 											"width": 74.34716796875,
 											"height": 13,
-											"text": "+fecha",
+											"text": "+date",
 											"horizontalAlignment": 0
 										}
 									],
@@ -1090,7 +1090,7 @@
 											"top": 495,
 											"width": 64.2353515625,
 											"height": 13,
-											"text": "Lista"
+											"text": "List"
 										},
 										{
 											"_type": "LabelView",
@@ -1162,7 +1162,7 @@
 											"top": 518,
 											"width": 64.2353515625,
 											"height": 13,
-											"text": "+nombre",
+											"text": "+name",
 											"horizontalAlignment": 0
 										}
 									],
@@ -2078,17 +2078,17 @@
 										"$ref": "AAAAAAGgqYLzskLo1ng="
 									},
 									"font": "Arial;13;0",
-									"left": 328,
+									"left": 320,
 									"top": 177,
 									"width": 42.9990234375,
 									"height": 13,
-									"alpha": 1.5707963267948966,
-									"distance": 15,
+									"alpha": 1.7126930772326738,
+									"distance": 7.0710678118654755,
 									"hostEdge": {
 										"$ref": "AAAAAAGgqYLzskLsOLE="
 									},
 									"edgePosition": 1,
-									"text": "+seguir"
+									"text": "+follow"
 								},
 								{
 									"_type": "EdgeLabelView",
@@ -2338,7 +2338,7 @@
 					"_parent": {
 						"$ref": "AAAAAAFF+qBWK6M3Z8Y="
 					},
-					"name": "Usuario",
+					"name": "User",
 					"ownedElements": [
 						{
 							"_type": "UMLAssociation",
@@ -2458,7 +2458,7 @@
 							"_parent": {
 								"$ref": "AAAAAAGgqXaII/1m9Ss="
 							},
-							"name": "seguir",
+							"name": "follow",
 							"end1": {
 								"_type": "UMLAssociationEnd",
 								"_id": "AAAAAAGgqYLzskLp2r4=",
@@ -2490,7 +2490,7 @@
 							"_parent": {
 								"$ref": "AAAAAAGgqXaII/1m9Ss="
 							},
-							"name": "nombreUsuario"
+							"name": "username"
 						},
 						{
 							"_type": "UMLAttribute",
@@ -2498,7 +2498,8 @@
 							"_parent": {
 								"$ref": "AAAAAAGgqXaII/1m9Ss="
 							},
-							"name": "password"
+							"name": "password",
+							"type": ""
 						},
 						{
 							"_type": "UMLAttribute",
@@ -2506,7 +2507,7 @@
 							"_parent": {
 								"$ref": "AAAAAAGgqXaII/1m9Ss="
 							},
-							"name": "correo"
+							"name": "email"
 						},
 						{
 							"_type": "UMLAttribute",
@@ -2514,7 +2515,7 @@
 							"_parent": {
 								"$ref": "AAAAAAGgqXaII/1m9Ss="
 							},
-							"name": "fotoURL"
+							"name": "photoURL"
 						}
 					]
 				},
@@ -2563,7 +2564,7 @@
 							"_parent": {
 								"$ref": "AAAAAAGgqXdXxv2lGII="
 							},
-							"name": "texto"
+							"name": "text"
 						},
 						{
 							"_type": "UMLAttribute",
@@ -2571,7 +2572,7 @@
 							"_parent": {
 								"$ref": "AAAAAAGgqXdXxv2lGII="
 							},
-							"name": "calificacion"
+							"name": "rating"
 						},
 						{
 							"_type": "UMLAttribute",
@@ -2579,7 +2580,7 @@
 							"_parent": {
 								"$ref": "AAAAAAGgqXdXxv2lGII="
 							},
-							"name": "numeroMeGusta"
+							"name": "likeNumber"
 						},
 						{
 							"_type": "UMLAttribute",
@@ -2587,7 +2588,7 @@
 							"_parent": {
 								"$ref": "AAAAAAGgqXdXxv2lGII="
 							},
-							"name": "numeroNoMeGusta"
+							"name": "dislikeNumber"
 						}
 					]
 				},
@@ -2597,7 +2598,7 @@
 					"_parent": {
 						"$ref": "AAAAAAFF+qBWK6M3Z8Y="
 					},
-					"name": "Pelicula",
+					"name": "Movie",
 					"attributes": [
 						{
 							"_type": "UMLAttribute",
@@ -2605,7 +2606,7 @@
 							"_parent": {
 								"$ref": "AAAAAAGgqXhvUP3mVCY="
 							},
-							"name": "nombre"
+							"name": "name"
 						},
 						{
 							"_type": "UMLAttribute",
@@ -2613,7 +2614,7 @@
 							"_parent": {
 								"$ref": "AAAAAAGgqXhvUP3mVCY="
 							},
-							"name": "descripcion"
+							"name": "description"
 						},
 						{
 							"_type": "UMLAttribute",
@@ -2621,7 +2622,7 @@
 							"_parent": {
 								"$ref": "AAAAAAGgqXhvUP3mVCY="
 							},
-							"name": "genero"
+							"name": "genre"
 						},
 						{
 							"_type": "UMLAttribute",
@@ -2629,7 +2630,7 @@
 							"_parent": {
 								"$ref": "AAAAAAGgqXhvUP3mVCY="
 							},
-							"name": "reparto"
+							"name": "casting"
 						},
 						{
 							"_type": "UMLAttribute",
@@ -2637,7 +2638,7 @@
 							"_parent": {
 								"$ref": "AAAAAAGgqXhvUP3mVCY="
 							},
-							"name": "fecha"
+							"name": "date"
 						}
 					]
 				},
@@ -2684,7 +2685,7 @@
 					"_parent": {
 						"$ref": "AAAAAAFF+qBWK6M3Z8Y="
 					},
-					"name": "Lista",
+					"name": "List",
 					"ownedElements": [
 						{
 							"_type": "UMLAssociation",
@@ -2778,7 +2779,7 @@
 							"_parent": {
 								"$ref": "AAAAAAGgqX5VfxEF0i0="
 							},
-							"name": "nombre"
+							"name": "name"
 						}
 					]
 				}
