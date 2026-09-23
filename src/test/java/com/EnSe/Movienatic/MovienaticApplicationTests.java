@@ -1,4 +1,4 @@
-package com.Ense.Movienatic;
+package com.EnSe.Movienatic;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
