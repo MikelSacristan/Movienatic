@@ -1,4 +1,4 @@
-package com.Ense.Movienatic;
+package com.EnSe.Movienatic;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
