@@ -1,14 +1,19 @@
 package com.EnSe.Movienatic.model;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import jakarta.persistence.CascadeType;
+import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
+import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.OrderColumn;
 import jakarta.persistence.Table;
 
 @Entity
@@ -21,17 +26,19 @@ public class Movie {
     @Column(nullable = false)
     private String title;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 2000)
     private String description;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 500)
     private String genre;
 
     @Column(nullable = false)
     private int releaseYear;
 
-    @Column(nullable = false)
-    private List<String> casting;
+    @ElementCollection
+    @CollectionTable(name = "movie_casting", joinColumns = @JoinColumn(name = "movie_id"))
+    @OrderColumn(name = "position")
+    private List<CastMember> casting = new ArrayList<>();
 
     @Column(nullable = true)
     private String posterURL;
@@ -80,12 +87,20 @@ public class Movie {
         this.releaseYear = releaseYear;
     }
 
-    public List<String> getCasting() {
+    public List<CastMember> getCasting() {
         return casting;
     }
 
-    public void setCasting(List<String> casting) {
+    public void setCasting(List<CastMember> casting) {
         this.casting = casting;
+    }
+
+    public String getPosterURL() {
+        return posterURL;
+    }
+
+    public void setPosterURL(String posterURL) {
+        this.posterURL = posterURL;
     }
 
     public List<Review> getReviews() {
@@ -102,5 +117,13 @@ public class Movie {
 
     public void setAverageRating(Double averageRating) {
         this.averageRating = averageRating;
+    }
+
+    public Integer getNumberOfRatings() {
+        return numberOfRatings;
+    }
+
+    public void setNumberOfRatings(Integer numberOfRatings) {
+        this.numberOfRatings = numberOfRatings;
     }
 }
