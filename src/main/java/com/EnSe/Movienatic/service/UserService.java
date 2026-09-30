@@ -8,17 +8,15 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class UserService {
-    private UserRepository userRepository;
 
     private final UserRepository userRepository;
 
     public UserService(UserRepository userRepository) {
         this.userRepository=userRepository;
     }
-    @Transactional
-    public void registrarUsuario(String username, String password, String email){
+    public void registrarUsuario(String username, String password, String email) throws DuplicatedUserException{
         var dbUser=userRepository.findByUsernameOrEmail(username,email);
-        if (dbUser.isPresent()) throw new DuplicatedUserException(username,email);
+        if (dbUser.isEmpty()) throw new DuplicatedUserException(username,email);
         User nuevoUsuario = new User();
         nuevoUsuario.setUsername(username);
         nuevoUsuario.setPassword(password);
