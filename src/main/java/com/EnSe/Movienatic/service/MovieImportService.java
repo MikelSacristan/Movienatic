@@ -1,6 +1,5 @@
 package com.EnSe.Movienatic.service;
 
-import com.EnSe.Movienatic.dto.TmdbCastDto;
 import com.EnSe.Movienatic.dto.TmdbCreditsResponse;
 import com.EnSe.Movienatic.dto.TmdbMovieDto;
 import com.EnSe.Movienatic.dto.TmdbResponse;
@@ -72,7 +71,8 @@ public class MovieImportService {
         movie.setDescription(dto.overview() != null ? dto.overview() : "");
         movie.setGenre(mapGenres(dto.genreIds(), genreNames));
         movie.setReleaseYear(parseYear(dto.releaseDate()));
-        movie.setCasting(fetchCasting(dto.id()));
+        movie.setCasting(fetchCasting(dto.id())); // Obtiene el reparto de la película desde TMDB, limitando a
+                                                  // MAX_CAST_SIZE y ordenando por relevancia
         movie.setPosterURL(dto.posterPath() != null ? imageBaseUrl + dto.posterPath() : null);
         return movie;
     }
