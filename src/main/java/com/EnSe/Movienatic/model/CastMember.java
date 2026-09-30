@@ -2,7 +2,15 @@ package com.EnSe.Movienatic.model;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 @Embeddable
 public class CastMember {
 
@@ -11,28 +19,4 @@ public class CastMember {
 
     @Column(name = "character_name", nullable = true)
     private String character;
-
-    public CastMember() {
-    }
-
-    public CastMember(String name, String character) {
-        this.name = name;
-        this.character = character;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getCharacter() {
-        return character;
-    }
-
-    public void setCharacter(String character) {
-        this.character = character;
-    }
 }

@@ -15,7 +15,13 @@ import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
+@Getter
+@Setter
+@NoArgsConstructor
 @Entity
 @Table(name = "users")
 public class User {
@@ -58,87 +64,4 @@ public class User {
     private Set<User> followers = new HashSet<>();
 
     private String photoURL;
-
-    public User() {
-    }
-
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public String getPhotoURL() {
-        return photoURL;
-    }
-
-    public void setPhotoURL(String photoURL) {
-        this.photoURL = photoURL;
-    }
-
-    public List<MovieList> getMovieLists() {
-        return movieLists;
-    }
-
-    public void setMovieLists(List<MovieList> movieLists) {
-        this.movieLists = movieLists;
-    }
-
-    public List<Review> getReviews() {
-        return reviews;
-    }
-
-    public void setReviews(List<Review> reviews) {
-        this.reviews = reviews;
-    }
-
-    public Set<Movie> getFavoriteMovies() {
-        return favoriteMovies;
-    }
-
-    public void setFavoriteMovies(Set<Movie> favoriteMovies) {
-        this.favoriteMovies = favoriteMovies;
-    }
-
-    public Set<Movie> getPendingMovies() {
-        return pendingMovies;
-    }
-
-    public void setPendingMovies(Set<Movie> pendingMovies) {
-        this.pendingMovies = pendingMovies;
-    }
-
-    public Set<User> getFollowing() {
-        return following;
-    }
-
-    public void setFollowing(Set<User> following) {
-        this.following = following;
-    }
-
-    public Set<User> getFollowers() {
-        return followers;
-    }
-
-    public void setFollowers(Set<User> followers) {
-        this.followers = followers;
-    }
 }
