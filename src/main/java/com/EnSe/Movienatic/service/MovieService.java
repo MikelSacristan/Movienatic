@@ -30,6 +30,7 @@ public class MovieService {
                 .orElse(null);
     }
 
+    // Método privado para convertir una entidad Movie a un DTO MovieDto
     private MovieDto toDto(Movie movie) {
         return new MovieDto(
                 movie.getId(),

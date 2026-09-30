@@ -1,12 +1,11 @@
 package com.EnSe.Movienatic.exception;
-public class MovieNotFoundException extends Exception{
-    private final String title;
 
-    public MovieNotFoundException(String title) {
-        this.title = title;
-    }
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 
-    public String getTitle() {
-        return title;
+public class MovieNotFoundException extends ResponseStatusException {
+
+    public MovieNotFoundException(HttpStatus status, String message) {
+        super(status, message);
     }
 }
