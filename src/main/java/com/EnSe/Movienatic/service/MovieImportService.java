@@ -6,9 +6,12 @@ import com.EnSe.Movienatic.dto.TmdbResponse;
 import com.EnSe.Movienatic.model.CastMember;
 import com.EnSe.Movienatic.model.Movie;
 import com.EnSe.Movienatic.repository.MovieRepository;
+import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,30 +39,35 @@ public class MovieImportService {
         this.imageBaseUrl = imageBaseUrl;
     }
 
-    // Importa las películas populares de TMDB y las guarda en la BD si no existen
-    // usando existsByTitle para evitar duplicados, devolviendo el número de
-    // películas importadas, lo sacará por terminal en DataInitializer. Otra manera
-    // de llamarlo sería desde un endpoint REST, por ejemplo
-    // https://localhost:8080/api/movies/import, se cargaría cuando lo deseemos
+    // Importa las películas descubiertas de TMDB y guarda en la BD solo las que no
+    // están ya importadas. Los títulos existentes se obtienen en una única
+    // consulta y se comparan en memoria, evitando el patrón N+1 de consultar
+    // por cada película. Devuelve el número de películas nuevas importadas.
     @Transactional
     public int importPopularMovies(int pages) {
         Map<Long, String> genreNames = tmdbService.fetchGenreNames(); // Mapea los IDs de género a nombres para poder
                                                                       // guardarlos en la BD
+        // En cada inicio de la aplicación, se obtienen los títulos existentes en la BD
+        // para evitar duplicados
+        Set<String> existingTitles = new HashSet<>(movieRepository.findAllTitles());
+        List<Movie> newMovies = new ArrayList<>();
         int imported = 0;
 
         // Itera sobre las páginas de películas descubiertas, obteniendo los
-        // resultados de TMDB y guardando en la BD si no existen
+        // resultados de TMDB y guardando en la BD las que no existen todavía
         for (int page = 1; page <= pages; page++) {
             TmdbResponse response = tmdbService.fetchDiscoveredMovies(page);
 
             for (TmdbMovieDto dto : response.results()) {
-                if (movieRepository.existsByTitle(dto.title())) {
+                if (!existingTitles.add(dto.title())) {
                     continue;
                 }
-                movieRepository.save(toEntity(dto, genreNames));
+                newMovies.add(toEntity(dto, genreNames));
                 imported++;
             }
         }
+
+        movieRepository.saveAll(newMovies);
         return imported;
     }
 

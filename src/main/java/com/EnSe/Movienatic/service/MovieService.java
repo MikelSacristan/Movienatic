@@ -4,6 +4,11 @@ import com.EnSe.Movienatic.dto.MovieDto;
 import com.EnSe.Movienatic.dto.ReviewDto;
 import com.EnSe.Movienatic.model.Movie;
 import com.EnSe.Movienatic.repository.MovieRepository;
+
+import java.util.List;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -14,6 +19,13 @@ public class MovieService {
 
     public MovieService(MovieRepository movieRepository) {
         this.movieRepository = movieRepository;
+    }
+
+    // Devuelve un bloque de películas paginado (por ejemplo 20 por página) ya en
+    // DTO, con el total y los metadatos de paginación de la Page
+    @Transactional(readOnly = true)
+    public Page<MovieDto> getMovies(Pageable pageable) {
+        return this.movieRepository.findAll(pageable).map(this::toDto);
     }
 
     @Transactional(readOnly = true)
