@@ -26,6 +26,7 @@ public class MovieController {
         this.movieService = movieService;
     }
 
+    // Paginación offset: ?page=0&size=20 (permite saltar a cualquier página)
     @GetMapping("")
     public Page<MovieDto> getMovies(@PageableDefault(size = DEFAULT_PAGE_SIZE) Pageable pageable) {
         return movieService.getMovies(pageable);

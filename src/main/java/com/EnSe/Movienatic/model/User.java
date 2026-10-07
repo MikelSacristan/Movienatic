@@ -15,6 +15,7 @@ import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.Email;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -37,6 +38,7 @@ public class User {
     private String password;
 
     @Column(nullable = false, unique = true)
+    @Email
     private String email;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)

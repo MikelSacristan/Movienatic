@@ -71,6 +71,7 @@ Hace tres cosas a la vez:
 ```gradle
 implementation 'org.springframework.boot:spring-boot-starter-webservices'
 implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+implementation 'org.springframework.boot:spring-boot-starter-validation'    // @NotBlank, @Email, @Valid
 runtimeOnly 'org.postgresql:postgresql'
 ```
 
@@ -432,23 +433,172 @@ Herramienta de build (equivale a Maven, pero con scripts más potentes).
 
 ---
 
-## 12. Excepciones y manejo de errores
+## 12. Validación de datos (Bean Validation / Hibernate Validator)
+
+Comprueba los datos **antes** de que lleguen a la lógica de negocio. La especificación es Jakarta Bean Validation (`jakarta.validation`) y su implementación de referencia es **Hibernate Validator**.
+
+### Dependencia
+
+```gradle
+implementation 'org.springframework.boot:spring-boot-starter-validation'
+```
+
+Desde Spring Boot 2.3 **ya no va incluida** en `spring-boot-starter-web`: sin esta línea, `@NotBlank`/`@Email`/`@Valid` no compilan.
+
+### Anotaciones usadas en el proyecto
+
+| Anotación | Comprueba | Ejemplo en el proyecto |
+|---|---|---|
+| `@NotBlank` | no nulo, no vacío y sin solo espacios | `username`, `password` en `RegisterDto` |
+| `@Email` | formato de email válido | `email` en `RegisterDto`, `email` en `User` |
+
+Otras comunes: `@NotNull`, `@NotEmpty`, `@Size(min, max)`, `@Min`, `@Max`, `@Pattern`.
+
+**Nota:** `@Email` deja pasar `null` y la cadena vacía (solo valida el formato si hay contenido), así que si el campo es obligatorio hay que combinarlo con `@NotBlank`.
+
+### Dónde se ponen
+
+**1. En el DTO de entrada** (lo habitual):
+
+```java
+// dto/RegisterDto.java
+public record RegisterDto(@NotBlank String username, @NotBlank @Email String email,
+        @NotBlank String password) {}
+```
+
+**2. En la entidad** (red de seguridad interna): Hibernate Validator comprueba las anotaciones de un `@Entity` en el `save()`:
+
+```java
+// model/User.java
+@Column(nullable = false, unique = true)
+@Email
+private String email;      // si llegara mal → ConstraintViolationException (500)
+```
+
+La validación del DTO evita que la petición incorrecta llegue siquiera al service; la de la entidad protege frente a errores internos (por ejemplo, una inserción hecha a mano desde otro punto del código).
+
+### Activación: `@Valid`
+
+Las anotaciones del DTO **solo se ejecutan si el controller lo pide**:
+
+```java
+// controller/AuthController.java
+@PostMapping("/register")
+public ResponseEntity<?> register(@Valid @RequestBody RegisterDto registerDto) { ... }
+```
+
+- `@Valid` delante de `@RequestBody` dispara la validación de todos los campos del DTO.
+- Si falla, Spring lanza `MethodArgumentNotValidException`, que recoge el `GlobalExceptionHandler` (sección 13) y responde **400**.
+- **Sin `@Valid` las anotaciones no hacen nada** (aunque compilen).
+
+Ejemplo de respuesta con un email mal escrito:
+
+```json
+{"status": 400, "error": "Bad Request",
+ "message": "email: debe ser una dirección de correo electrónico con formato correcto"}
+```
+
+---
+
+## 13. Excepciones y gestión centralizada de errores
+
+### Dos formas de lanzar un error
+
+**1. `ResponseStatusException` (de Spring)** — lleva código HTTP y mensaje en la propia excepción:
 
 ```java
 public class MovieNotFoundException extends ResponseStatusException {
     public MovieNotFoundException(HttpStatus status, String message) {
-        super(status, message);       // 404 + "Película no encontrada: 5"
+        super(status, message);        // → 404 + "Película no encontrada: 5"
     }
 }
 ```
 
-- `ResponseStatusException` (de Spring) lleva el **código HTTP** y un mensaje; Spring lo convierte en la respuesta correspondiente.
-- En el controlador: `throw new MovieNotFoundException(HttpStatus.NOT_FOUND, "...")`.
-- Para un formato de error JSON uniforme en toda la API, se puede añadir un `@RestControllerAdvice` con `@ExceptionHandler` (actualmente no está en el proyecto; se usa el manejo por defecto de Spring).
+Spring la convierte solo en la respuesta HTTP correspondiente, sin intervención del controller.
+
+**2. Excepciones propias `RuntimeException`** — para errores de negocio (duplicados, credenciales...):
+
+```java
+public class DuplicatedUserException extends RuntimeException {
+    public DuplicatedUserException(String username, String email) {
+        super("El usuario '" + username + "' o el email '" + email + "' ya están registrados");
+        this.username = username;
+        this.email = email;
+    }
+}
+```
+
+- Heredar de `RuntimeException` hace que no haga falta `throws` ni `try/catch` en los controllers.
+- `super(mensaje)` es **imprescindible**: sin él, `e.getMessage()` devuelve `null`.
+
+### `GlobalExceptionHandler` (`@RestControllerAdvice`)
+
+Clase única, en el paquete `exception/`, que captura todas las excepciones y las convierte en JSON con la misma forma. Los controllers no necesitan `try/catch`:
+
+```java
+@RestControllerAdvice
+public class GlobalExceptionHandler {
+
+    @ExceptionHandler(DuplicatedUserException.class)
+    public ResponseEntity<Map<String, Object>> usuarioDuplicado(DuplicatedUserException e) {
+        return error(HttpStatus.CONFLICT, e.getMessage());          // 409
+    }
+
+    @ExceptionHandler(BadCredentialsException.class)
+    public ResponseEntity<Map<String, Object>> credencialesIncorrectas(BadCredentialsException e) {
+        return error(HttpStatus.UNAUTHORIZED, e.getMessage());      // 401
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<Map<String, Object>> validacion(MethodArgumentNotValidException e) {
+        String mensaje = e.getBindingResult().getFieldErrors().stream()
+                .map(err -> err.getField() + ": " + err.getDefaultMessage())
+                .collect(Collectors.joining(", "));
+        return error(HttpStatus.BAD_REQUEST, mensaje);              // 400 (fallos de @Valid)
+    }
+
+    private ResponseEntity<Map<String, Object>> error(HttpStatus status, String message) {
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("status", status.value());
+        body.put("error", status.getReasonPhrase());
+        body.put("message", message);
+        return ResponseEntity.status(status).body(body);
+    }
+}
+```
+
+- `@RestControllerAdvice` = `@ControllerAdvice` + `@ResponseBody`: aplica a **todos** los controllers del proyecto, no solo a uno.
+- `@ExceptionHandler(Tipo.class)` registra qué hacer con cada excepción. El propio Spring lanza `MethodArgumentNotValidException` cuando falla un `@Valid`; aquí solo se traduce a JSON.
+
+### Mapa de excepciones → código HTTP
+
+| Excepción | Status | Cuándo ocurre |
+|---|---|---|
+| `MethodArgumentNotValidException` | **400** Bad Request | falla `@Valid` en el DTO (sección 12) |
+| `BadCredentialsException` | **401** Unauthorized | login con credenciales incorrectas |
+| `MovieNotFoundException` / `UserNotFoundException` | **404** Not Found | recurso inexistente |
+| `DuplicatedMovieException` / `DuplicatedUserException` | **409** Conflict | registro o importación duplicada |
+
+Ejemplo real de respuesta (registro duplicado):
+
+```json
+{"status": 409, "error": "Conflict",
+ "message": "El usuario 'pepe' o el email 'pepe@correo.es' ya están registrados"}
+```
+
+### Por qué centralizada y no `try/catch` en cada controller
+
+- **Un solo punto** para todos los errores → respuesta JSON uniforme que el frontend puede manejar siempre igual.
+- El controller queda limpio: solo lanza la excepción (`throw new ...`).
+- Si alguna excepción no está gestionada, Spring responde 500 y el error aparece en el log (se ve al depurar, no se cuela en la API).
+
+### Nota de seguridad (login)
+
+`BadCredentialsException` usa el **mismo mensaje** para "el usuario no existe" y "la contraseña es incorrecta". Si se distinguieran, un atacante podría averiguar qué emails o nombres de usuario existen en la BD (enumeración de usuarios).
 
 ---
 
-## 13. Estructura de carpetas
+## 14. Estructura de carpetas
 
 ```
 Movienatic/
@@ -475,12 +625,17 @@ Movienatic/
     │   │   │   ├── TmdbCreditsResponse.java
     │   │   │   ├── TmdbCastDto.java
     │   │   │   ├── MovieDto.java            → salida de la API
-    │   │   │   └── ReviewDto.java
-    │   │   ├── exception/                   → excepciones propias de la app
-    │   │   │   ├── MovieNotFoundException.java
+    │   │   │   ├── ReviewDto.java
+    │   │   │   ├── RegisterDto.java         → entrada de /auth/register (@NotBlank, @Email)
+    │   │   │   ├── LoginDto.java            → entrada de /auth/login
+    │   │   │   └── UserDto.java             → datos de usuario (salida)
+    │   │   ├── exception/                   → excepciones propias + gestión centralizada
+    │   │   │   ├── GlobalExceptionHandler.java  → @RestControllerAdvice (todas las respuestas de error)
+    │   │   │   ├── MovieNotFoundException.java  → 404 (ResponseStatusException)
     │   │   │   ├── UserNotFoundException.java
+    │   │   │   ├── BadCredentialsException.java → 401 en el login
     │   │   │   ├── DuplicatedMovieException.java
-    │   │   │   └── DuplicatedUserException.java
+    │   │   │   └── DuplicatedUserException.java → 409 en el registro
     │   │   ├── model/                       → entidades JPA (+ tipos embebidos)
     │   │   │   ├── Movie.java
     │   │   │   ├── CastMember.java          → @Embeddable (actor + personaje)
@@ -509,7 +664,7 @@ Movienatic/
 - **`model`**: entidades con `@Entity` que representan las tablas (`movies`, `reviews`, `users`, `movie_lists`).
 - **`repository`**: interfaces de Spring Data JPA; puente entre la app y la BD.
 - **`service`**: lógica de negocio. Se inyectan los repositorios y otros servicios; transforma entidad ↔ DTO.
-- **`exception`**: excepciones propias para errores concretos (película no encontrada, usuario duplicado...).
+- **`exception`**: excepciones propias para errores concretos (película no encontrada, usuario duplicado...) y el `GlobalExceptionHandler` que las traduce a respuestas HTTP con formato uniforme.
 - **`resources/application.properties`**: configuración central.
 
 ### Separación en capas (flujo de una petición)
@@ -530,7 +685,7 @@ PostgreSQL
 
 ---
 
-## 14. Flujo de la importación (TMDB → BD)
+## 15. Flujo de la importación (TMDB → BD)
 
 ```
 DataInitializer.run()          (CommandLineRunner, al arrancar)
@@ -561,7 +716,7 @@ Pasos clave:
 
 ---
 
-## 15. Comandos útiles
+## 16. Comandos útiles
 
 ```bash
 ./gradlew bootRun                                   # ejecutar

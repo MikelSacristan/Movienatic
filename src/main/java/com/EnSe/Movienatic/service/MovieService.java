@@ -5,8 +5,6 @@ import com.EnSe.Movienatic.dto.ReviewDto;
 import com.EnSe.Movienatic.model.Movie;
 import com.EnSe.Movienatic.repository.MovieRepository;
 
-import java.util.List;
-
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
