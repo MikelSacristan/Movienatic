@@ -10,6 +10,9 @@ import com.EnSe.Movienatic.service.UserService;
 
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -20,15 +23,25 @@ import org.springframework.web.bind.annotation.RequestBody;
 @RestController
 @RequestMapping("/users")
 public class UserController {
+
+    // Tamaño de página por defecto: 4 columnas x 5 filas = 20 películas
+    private static final int DEFAULT_PAGE_SIZE = 20;
+
     private UserService userService;
 
     public UserController(UserService userService) {
         this.userService = userService;
     }
 
+    // Paginación offset: ?page=0&size=20 (permite saltar a cualquier página)
+    @GetMapping("")
+    public Page<UserDto> getMovies(@PageableDefault(size = DEFAULT_PAGE_SIZE) Pageable pageable) {
+        return userService.getUsers(pageable);
+    }
+
     // Peliculas pendientes (GET, POST, DELETE)
     @GetMapping("/{userId}/pending-movies")
-    public ResponseEntity<?> getPendingMovies(@PathVariable Long userId) {
+    public ResponseEntity<?> getPendingMovies(@PathVariable("userId") Long userId) {
         List<MovieDto> pendingMovies = userService.getPendingMovies(userId);
         return ResponseEntity.ok(pendingMovies);
     }

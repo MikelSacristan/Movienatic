@@ -1,13 +1,19 @@
 package com.EnSe.Movienatic.service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
 
 import com.EnSe.Movienatic.dto.MovieDto;
+import com.EnSe.Movienatic.dto.ReviewDto;
 import com.EnSe.Movienatic.dto.UserDto;
 import com.EnSe.Movienatic.model.User;
+import com.EnSe.Movienatic.model.Movie;
 import com.EnSe.Movienatic.repository.UserRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class UserService {
@@ -16,6 +22,13 @@ public class UserService {
 
     public UserService(UserRepository userRepository) {
         this.userRepository = userRepository;
+    }
+
+    // Devuelve un bloque de usuarios paginado (por ejemplo 20 por página) ya en
+    // DTO, con el total y los metadatos de paginación de la Page
+    @Transactional(readOnly = true)
+    public Page<UserDto> getUsers(Pageable pageable) {
+        return this.userRepository.findAll(pageable).map(this::toUserDto);
     }
 
     public User getUserByName(String name) {
@@ -28,9 +41,9 @@ public class UserService {
 
     // Peliculas pendientes
     public List<MovieDto> getPendingMovies(Long userId) {
-        // TODO: Implementar la lógica para obtener las películas pendientes de un
-        // usuario
-        return List.of();
+        List<MovieDto> list = new ArrayList<>();
+        for(Movie m : userRepository.findPendingMovies(userId)) list.add(toMovieDto(m));
+        return list;
     }
 
     public void addPending(Long userId, Long movieId) {
@@ -85,5 +98,34 @@ public class UserService {
     public List<?> getLists(Long userId) {
         // TODO: Implementar la lógica para obtener las listas de un usuario
         return List.of();
+    }
+     // Método privado para convertir una entidad User a un DTO UserDto
+    private UserDto toUserDto(User user) {
+        return new UserDto(
+                user.getUsername(), 
+                user.getEmail(), 
+                user.getPassword());
+    }
+    // Método privado para convertir una entidad Movie a un DTO MovieDto
+    private MovieDto toMovieDto(Movie movie) {
+        return new MovieDto(
+                movie.getId(),
+                movie.getTitle(),
+                movie.getDescription(),
+                movie.getGenre(),
+                movie.getReleaseYear(),
+                movie.getCasting(),
+                movie.getPosterURL(),
+                movie.getAverageRating(),
+                movie.getNumberOfRatings(),
+                movie.getReviews().stream()
+                        .map(review -> new ReviewDto(
+                                review.getId(),
+                                review.getContent(),
+                                review.getRating(),
+                                review.getLikes(),
+                                review.getDislikes(),
+                                review.getTimestamp()))
+                        .toList());
     }
 }
