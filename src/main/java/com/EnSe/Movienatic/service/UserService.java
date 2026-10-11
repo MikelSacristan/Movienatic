@@ -43,6 +43,7 @@ public class UserService {
         return userRepository.findById(id).orElseThrow(() -> new UserNotFoundException(id.toString()));
     }
 
+    // Películas pendientes
     @Transactional(readOnly = true)
     public List<MovieDto> getPendingMovies(Long userId) {
         User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
@@ -69,17 +70,26 @@ public class UserService {
 
     // Peliculas favoritas
     public List<MovieDto> getFavourites(Long userId) {
-        // TODO: Implementar la lógica para obtener las películas favoritas de un
-        // usuario
-        return List.of();
+        User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
+        return user.getFavoriteMovies()
+            .stream()
+            .map(this::toMovieDto)
+            .toList();
     }
 
     public void addFavourite(Long userId, Long movieId) {
-        // TODO: Implementar la lógica para añadir una película favorita a un usuario
+        User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
+        Movie movie = movieRepository.findById(movieId).orElseThrow(() -> new MovieNotFoundException(movieId));
+        user.getFavoriteMovies().add(movie);
+        userRepository.save(user);
     }
 
     public void removeFavourite(Long userId, Long movieId) {
-        // TODO: Implementar la lógica para eliminar una película favorita de un usuario
+        User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
+        Movie movie = movieRepository.findById(movieId).orElseThrow(() -> new MovieNotFoundException(movieId));
+        if(!user.getFavoriteMovies().contains(movie)) throw new FavoriteMovieNotFoundException(userId,movieId);
+        user.getFavoriteMovies().remove(movie);
+        userRepository.save(user);
     }
 
     // Siguiendo
