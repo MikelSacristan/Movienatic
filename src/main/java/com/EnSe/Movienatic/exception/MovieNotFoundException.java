@@ -5,7 +5,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 public class MovieNotFoundException extends ResponseStatusException {
 
-    public MovieNotFoundException(HttpStatus status, String message) {
-        super(status, message);
+    public MovieNotFoundException(Long id) {
+        super(HttpStatus.NOT_FOUND, "No se encontro la película con el id "+id);
     }
 }

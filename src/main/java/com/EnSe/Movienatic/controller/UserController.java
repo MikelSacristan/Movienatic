@@ -18,7 +18,6 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 
 @RestController
 @RequestMapping("/users")
@@ -47,14 +46,14 @@ public class UserController {
     }
 
     @PostMapping("/{userId}/pending-movies/{movieId}")
-    public ResponseEntity<?> addPending(@PathVariable Long userId, @PathVariable Long movieId) {
+    public ResponseEntity<?> addPending(@PathVariable("userId") Long userId, @PathVariable("movieId") Long movieId) {
         userService.addPending(userId, movieId);
 
         return ResponseEntity.ok().body("Película añadida a pendientes correctamente");
     }
 
     @DeleteMapping("/{userId}/pending-movies/{movieId}")
-    public ResponseEntity<?> removePending(@PathVariable Long userId, @PathVariable Long movieId) {
+    public ResponseEntity<?> removePending(@PathVariable("userId") Long userId, @PathVariable("movieId") Long movieId) {
         userService.removePending(userId, movieId);
 
         return ResponseEntity.ok().body("Película eliminada de pendientes correctamente");
@@ -62,20 +61,20 @@ public class UserController {
 
     // Favoritas (GET, POST, DELETE)
     @GetMapping("/{userId}/favourites")
-    public ResponseEntity<?> getFavourites(@PathVariable Long userId) {
+    public ResponseEntity<?> getFavourites(@PathVariable("userId") Long userId) {
         List<MovieDto> favourites = userService.getFavourites(userId);
         return ResponseEntity.ok(favourites);
     }
 
     @PostMapping("/{userId}/favourites/{movieId}")
-    public ResponseEntity<?> addFavourite(@PathVariable Long userId, @PathVariable Long movieId) {
+    public ResponseEntity<?> addFavourite(@PathVariable("userId") Long userId, @PathVariable("movieId") Long movieId) {
         userService.addFavourite(userId, movieId);
 
         return ResponseEntity.ok().body("Película añadida a favoritas correctamente");
     }
 
     @DeleteMapping("/{userId}/favourites/{movieId}")
-    public ResponseEntity<?> removeFavourite(@PathVariable Long userId, @PathVariable Long movieId) {
+    public ResponseEntity<?> removeFavourite(@PathVariable("userId") Long userId, @PathVariable("movieId") Long movieId) {
         userService.removeFavourite(userId, movieId);
 
         return ResponseEntity.ok().body("Película eliminada de favoritas correctamente");
@@ -83,20 +82,20 @@ public class UserController {
 
     // Siguiendo (GET, POST, DELETE)
     @GetMapping("/{userId}/following")
-    public ResponseEntity<?> getFollowing(@PathVariable Long userId) {
+    public ResponseEntity<?> getFollowing(@PathVariable("userId") Long userId) {
         List<UserDto> following = userService.getFollowing(userId);
         return ResponseEntity.ok(following);
     }
 
     @PostMapping("/{userId}/following/{userIdToFollow}")
-    public ResponseEntity<?> follow(@PathVariable Long userId, @PathVariable Long userIdToFollow) {
+    public ResponseEntity<?> follow(@PathVariable("userId") Long userId, @PathVariable("userIdToFollow") Long userIdToFollow) {
         userService.followUser(userId, userIdToFollow);
 
         return ResponseEntity.ok().body("Usuario seguido correctamente");
     }
 
     @DeleteMapping("/{userId}/following/{userIdToUnfollow}")
-    public ResponseEntity<?> unfollow(@PathVariable Long userId, @PathVariable Long userIdToUnfollow) {
+    public ResponseEntity<?> unfollow(@PathVariable("userId") Long userId, @PathVariable("userIdToUnfollow") Long userIdToUnfollow) {
         userService.unfollowUser(userId, userIdToUnfollow);
 
         return ResponseEntity.ok().body("Usuario dejado de seguir correctamente");
@@ -105,25 +104,25 @@ public class UserController {
     // Solo consulta (GET)
 
     @GetMapping("/{userId}")
-    public ResponseEntity<?> getUser(@PathVariable Long userId) {
+    public ResponseEntity<?> getUser(@PathVariable("userId") Long userId) {
         User user = userService.getUserById(userId);
         return ResponseEntity.ok(user);
     }
 
     @GetMapping("/{userId}/followers")
-    public ResponseEntity<?> getFollowers(@PathVariable Long userId) {
+    public ResponseEntity<?> getFollowers(@PathVariable("userId") Long userId) {
         List<UserDto> followers = userService.getFollowers(userId);
         return ResponseEntity.ok(followers);
     }
 
     @GetMapping("/{userId}/reviews")
-    public ResponseEntity<?> getReviews(@PathVariable Long userId) {
+    public ResponseEntity<?> getReviews(@PathVariable("userId") Long userId) {
         List<?> reviews = userService.getReviews(userId);
         return ResponseEntity.ok(reviews);
     }
 
     @GetMapping("/{userId}/lists")
-    public ResponseEntity<?> getLists(@PathVariable Long userId) {
+    public ResponseEntity<?> getLists(@PathVariable("userId") Long userId) {
         List<?> lists = userService.getLists(userId);
         return ResponseEntity.ok(lists);
     }

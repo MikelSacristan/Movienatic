@@ -1,15 +1,14 @@
 package com.EnSe.Movienatic.exception;
 
-public class UserNotFoundException extends RuntimeException {
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 
-    private final String username;
+public class UserNotFoundException extends ResponseStatusException {
 
-    public UserNotFoundException(String username) {
-        super("No existe el usuario: " + username);
-        this.username = username;
+    public UserNotFoundException(Long id) {
+        super(HttpStatus.NOT_FOUND, "No se encontro el usuario con el id "+id);
     }
-
-    public String getUsername() {
-        return username;
+    public UserNotFoundException(String username) {
+        super(HttpStatus.NOT_FOUND, "No se encontro el usuario "+username);
     }
 }

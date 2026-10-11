@@ -1,6 +1,5 @@
 package com.EnSe.Movienatic.service;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
@@ -10,18 +9,23 @@ import com.EnSe.Movienatic.dto.ReviewDto;
 import com.EnSe.Movienatic.dto.UserDto;
 import com.EnSe.Movienatic.model.User;
 import com.EnSe.Movienatic.model.Movie;
+import com.EnSe.Movienatic.repository.MovieRepository;
 import com.EnSe.Movienatic.repository.UserRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.transaction.annotation.Transactional;
+import com.EnSe.Movienatic.exception.*;
 
 @Service
 public class UserService {
 
     private UserRepository userRepository;
+    private MovieRepository movieRepository;
 
-    public UserService(UserRepository userRepository) {
+    public UserService(UserRepository userRepository, MovieRepository movieRepository ) {
         this.userRepository = userRepository;
+        this.movieRepository = movieRepository;
     }
 
     // Devuelve un bloque de usuarios paginado (por ejemplo 20 por página) ya en
@@ -32,27 +36,35 @@ public class UserService {
     }
 
     public User getUserByName(String name) {
-        return userRepository.findByUsername(name).orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+        return userRepository.findByUsername(name).orElseThrow(() -> new UserNotFoundException(name));
     }
 
     public User getUserById(Long id) {
-        return userRepository.findById(id).orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+        return userRepository.findById(id).orElseThrow(() -> new UserNotFoundException(id.toString()));
     }
 
-    // Peliculas pendientes
+    @Transactional(readOnly = true)
     public List<MovieDto> getPendingMovies(Long userId) {
-        List<MovieDto> list = new ArrayList<>();
-        for(Movie m : userRepository.findPendingMovies(userId)) list.add(toMovieDto(m));
-        return list;
+        User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
+        return user.getPendingMovies()
+            .stream()
+            .map(this::toMovieDto)
+            .toList();
     }
-
+    @Transactional
     public void addPending(Long userId, Long movieId) {
-        // TODO: Implementar la lógica para añadir una película pendiente a un usuario
+        User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
+        Movie movie = movieRepository.findById(movieId).orElseThrow(() -> new MovieNotFoundException(movieId));
+        user.getPendingMovies().add(movie);
+        userRepository.save(user);
     }
-
+    @Transactional
     public void removePending(Long userId, Long movieId) {
-        // TODO: Implementar la lógica para eliminar una película pendiente de un
-        // usuario
+        User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
+        Movie movie = movieRepository.findById(movieId).orElseThrow(() -> new MovieNotFoundException(movieId));
+        if(!user.getPendingMovies().contains(movie)) throw new PendingMovieNotFoundException(userId,movieId);
+        user.getPendingMovies().remove(movie);
+        userRepository.save(user);
     }
 
     // Peliculas favoritas

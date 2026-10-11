@@ -36,7 +36,7 @@ public class MovieController {
     public MovieDto getMovieById(@PathVariable Long id) {
         MovieDto movie = movieService.getMovieById(id);
         if (movie == null) {
-            throw new MovieNotFoundException(HttpStatus.NOT_FOUND, "Película no encontrada: " + id);
+            throw new MovieNotFoundException(id);
         }
         return movie;
     }
