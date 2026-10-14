@@ -6,14 +6,15 @@ import org.springframework.stereotype.Service;
 
 import com.EnSe.Movienatic.dto.MovieDto;
 import com.EnSe.Movienatic.dto.ReviewDto;
+import com.EnSe.Movienatic.dto.UserDetailsDto;
 import com.EnSe.Movienatic.dto.UserDto;
 import com.EnSe.Movienatic.model.User;
 import com.EnSe.Movienatic.model.Movie;
+import com.EnSe.Movienatic.model.Review;
 import com.EnSe.Movienatic.repository.MovieRepository;
 import com.EnSe.Movienatic.repository.UserRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpStatus;
 import org.springframework.transaction.annotation.Transactional;
 import com.EnSe.Movienatic.exception.*;
 
@@ -23,7 +24,7 @@ public class UserService {
     private UserRepository userRepository;
     private MovieRepository movieRepository;
 
-    public UserService(UserRepository userRepository, MovieRepository movieRepository ) {
+    public UserService(UserRepository userRepository, MovieRepository movieRepository) {
         this.userRepository = userRepository;
         this.movieRepository = movieRepository;
     }
@@ -48,10 +49,11 @@ public class UserService {
     public List<MovieDto> getPendingMovies(Long userId) {
         User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
         return user.getPendingMovies()
-            .stream()
-            .map(this::toMovieDto)
-            .toList();
+                .stream()
+                .map(this::toMovieDto)
+                .toList();
     }
+
     @Transactional
     public void addPending(Long userId, Long movieId) {
         User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
@@ -59,11 +61,13 @@ public class UserService {
         user.getPendingMovies().add(movie);
         userRepository.save(user);
     }
+
     @Transactional
     public void removePending(Long userId, Long movieId) {
         User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
         Movie movie = movieRepository.findById(movieId).orElseThrow(() -> new MovieNotFoundException(movieId));
-        if(!user.getPendingMovies().contains(movie)) throw new PendingMovieNotFoundException(userId,movieId);
+        if (!user.getPendingMovies().contains(movie))
+            throw new PendingMovieNotFoundException(userId, movieId);
         user.getPendingMovies().remove(movie);
         userRepository.save(user);
     }
@@ -71,63 +75,100 @@ public class UserService {
     // Peliculas favoritas
     public List<MovieDto> getFavourites(Long userId) {
         User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
-        return user.getFavoriteMovies()
-            .stream()
-            .map(this::toMovieDto)
-            .toList();
+        return user.getFavouriteMovies()
+                .stream()
+                .map(this::toMovieDto)
+                .toList();
     }
 
     public void addFavourite(Long userId, Long movieId) {
         User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
         Movie movie = movieRepository.findById(movieId).orElseThrow(() -> new MovieNotFoundException(movieId));
-        user.getFavoriteMovies().add(movie);
+        user.getFavouriteMovies().add(movie);
         userRepository.save(user);
     }
 
     public void removeFavourite(Long userId, Long movieId) {
         User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
         Movie movie = movieRepository.findById(movieId).orElseThrow(() -> new MovieNotFoundException(movieId));
-        if(!user.getFavoriteMovies().contains(movie)) throw new FavoriteMovieNotFoundException(userId,movieId);
-        user.getFavoriteMovies().remove(movie);
+        if (!user.getFavouriteMovies().contains(movie))
+            throw new FavoriteMovieNotFoundException(userId, movieId);
+        user.getFavouriteMovies().remove(movie);
         userRepository.save(user);
     }
 
     // Siguiendo
-    public List<UserDto> getFollowing(Long userId) {
-        // TODO: Implementar la lógica para obtener los usuarios que un usuario está
-        // siguiendo
-        return List.of();
+    public List<UserDetailsDto> getFollowing(Long userId) {
+        User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
+        return user.getFollowing()
+                .stream()
+                .map(this::toUserDetailsDto)
+                .toList();
     }
 
     public void followUser(Long userId, Long followUserId) {
-        // TODO: Implementar la lógica para seguir a otro usuario
+        User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
+        User userToFollow = userRepository.findById(followUserId)
+                .orElseThrow(() -> new UserNotFoundException(followUserId));
+        user.getFollowing().add(userToFollow);
+        userRepository.save(user);
     }
 
     public void unfollowUser(Long userId, Long unfollowUserId) {
-        // TODO: Implementar la lógica para dejar de seguir a otro usuario
+        User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
+        User userToUnfollow = userRepository.findById(unfollowUserId)
+                .orElseThrow(() -> new UserNotFoundException(unfollowUserId));
+        if (!user.getFollowing().contains(userToUnfollow))
+            throw new FollowingUserNotFoundException(userId, unfollowUserId);
+        user.getFollowing().remove(userToUnfollow);
+        userRepository.save(user);
     }
 
-    public List<UserDto> getFollowers(Long userId) {
-        // TODO: Implementar la lógica para obtener los seguidores de un usuario
-        return List.of();
+    public List<UserDetailsDto> getFollowers(Long userId) {
+        User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
+        return user.getFollowers()
+                .stream()
+                .map(this::toUserDetailsDto)
+                .toList();
     }
 
-    public List<?> getReviews(Long userId) {
-        // TODO: Implementar la lógica para obtener las reseñas de un usuario
-        return List.of();
+    public List<ReviewDto> getReviews(Long userId) {
+        User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
+        return user.getReviews()
+                .stream()
+                .map(this::toReviewDto)
+                .toList();
+    }
+
+    public void addReview(Long userId, Long movieId, String content, Integer rating) {
+        User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
+        Movie movie = movieRepository.findById(movieId).orElseThrow(() -> new MovieNotFoundException(movieId));
+        Review review = new Review();
+        review.setUser(user);
+        review.setMovie(movie);
+        review.setContent(content);
+        review.setRating(rating);
+        user.getReviews().add(review);
+        userRepository.save(user);
     }
 
     public List<?> getLists(Long userId) {
         // TODO: Implementar la lógica para obtener las listas de un usuario
         return List.of();
     }
-     // Método privado para convertir una entidad User a un DTO UserDto
+
+    private UserDetailsDto toUserDetailsDto(User user) {
+        return new UserDetailsDto(user.getId(), user.getUsername());
+    }
+
+    // Método privado para convertir una entidad User a un DTO UserDto
     private UserDto toUserDto(User user) {
         return new UserDto(
-                user.getUsername(), 
-                user.getEmail(), 
+                user.getUsername(),
+                user.getEmail(),
                 user.getPassword());
     }
+
     // Método privado para convertir una entidad Movie a un DTO MovieDto
     private MovieDto toMovieDto(Movie movie) {
         return new MovieDto(
@@ -149,5 +190,15 @@ public class UserService {
                                 review.getDislikes(),
                                 review.getTimestamp()))
                         .toList());
+    }
+
+    private ReviewDto toReviewDto(com.EnSe.Movienatic.model.Review review) {
+        return new ReviewDto(
+                review.getId(),
+                review.getContent(),
+                review.getRating(),
+                review.getLikes(),
+                review.getDislikes(),
+                review.getTimestamp());
     }
 }

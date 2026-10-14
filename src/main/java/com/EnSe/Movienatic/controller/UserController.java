@@ -3,10 +3,17 @@ package com.EnSe.Movienatic.controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.EnSe.Movienatic.dto.FavouriteRequest;
+import com.EnSe.Movienatic.dto.FollowRequest;
 import com.EnSe.Movienatic.dto.MovieDto;
+import com.EnSe.Movienatic.dto.PendingRequest;
+import com.EnSe.Movienatic.dto.ReviewRequest;
+import com.EnSe.Movienatic.dto.UserDetailsDto;
 import com.EnSe.Movienatic.dto.UserDto;
 import com.EnSe.Movienatic.model.User;
 import com.EnSe.Movienatic.service.UserService;
+
+import org.springframework.web.bind.annotation.RequestBody;
 
 import java.util.List;
 
@@ -45,9 +52,9 @@ public class UserController {
         return ResponseEntity.ok(pendingMovies);
     }
 
-    @PostMapping("/{userId}/pending-movies/{movieId}")
-    public ResponseEntity<?> addPending(@PathVariable("userId") Long userId, @PathVariable("movieId") Long movieId) {
-        userService.addPending(userId, movieId);
+    @PostMapping("/{userId}/pending-movies")
+    public ResponseEntity<?> addPending(@PathVariable("userId") Long userId, @RequestBody PendingRequest request) {
+        userService.addPending(userId, request.getMovieId());
 
         return ResponseEntity.ok().body("Película añadida a pendientes correctamente");
     }
@@ -66,15 +73,17 @@ public class UserController {
         return ResponseEntity.ok(favourites);
     }
 
-    @PostMapping("/{userId}/favourites/{movieId}")
-    public ResponseEntity<?> addFavourite(@PathVariable("userId") Long userId, @PathVariable("movieId") Long movieId) {
-        userService.addFavourite(userId, movieId);
+    @PostMapping("/{userId}/favourites")
+    public ResponseEntity<?> addFavourite(@PathVariable("userId") Long userId, @RequestBody FavouriteRequest request) {
+        System.out.println("Añadiendo película a favoritas: userId=" + userId + ", movieId=" + request.getMovieId());
+        userService.addFavourite(userId, request.getMovieId());
 
         return ResponseEntity.ok().body("Película añadida a favoritas correctamente");
     }
 
     @DeleteMapping("/{userId}/favourites/{movieId}")
-    public ResponseEntity<?> removeFavourite(@PathVariable("userId") Long userId, @PathVariable("movieId") Long movieId) {
+    public ResponseEntity<?> removeFavourite(@PathVariable("userId") Long userId,
+            @PathVariable("movieId") Long movieId) {
         userService.removeFavourite(userId, movieId);
 
         return ResponseEntity.ok().body("Película eliminada de favoritas correctamente");
@@ -83,22 +92,38 @@ public class UserController {
     // Siguiendo (GET, POST, DELETE)
     @GetMapping("/{userId}/following")
     public ResponseEntity<?> getFollowing(@PathVariable("userId") Long userId) {
-        List<UserDto> following = userService.getFollowing(userId);
+        List<UserDetailsDto> following = userService.getFollowing(userId);
         return ResponseEntity.ok(following);
     }
 
-    @PostMapping("/{userId}/following/{userIdToFollow}")
-    public ResponseEntity<?> follow(@PathVariable("userId") Long userId, @PathVariable("userIdToFollow") Long userIdToFollow) {
-        userService.followUser(userId, userIdToFollow);
+    @PostMapping("/{userId}/following")
+    public ResponseEntity<?> follow(@PathVariable("userId") Long userId,
+            @RequestBody FollowRequest request) {
+        userService.followUser(userId, request.getUserIdToFollow());
 
         return ResponseEntity.ok().body("Usuario seguido correctamente");
     }
 
     @DeleteMapping("/{userId}/following/{userIdToUnfollow}")
-    public ResponseEntity<?> unfollow(@PathVariable("userId") Long userId, @PathVariable("userIdToUnfollow") Long userIdToUnfollow) {
+    public ResponseEntity<?> unfollow(@PathVariable("userId") Long userId,
+            @PathVariable("userIdToUnfollow") Long userIdToUnfollow) {
         userService.unfollowUser(userId, userIdToUnfollow);
 
         return ResponseEntity.ok().body("Usuario dejado de seguir correctamente");
+    }
+
+    // Reviews (GET, POST, DELETE)
+    @GetMapping("/{userId}/reviews")
+    public ResponseEntity<?> getReviews(@PathVariable("userId") Long userId) {
+        List<?> reviews = userService.getReviews(userId);
+        return ResponseEntity.ok(reviews);
+    }
+
+    @PostMapping("/{userId}/reviews")
+    public ResponseEntity<?> addReview(@PathVariable("userId") Long userId, @RequestBody ReviewRequest request) {
+        userService.addReview(userId, request.getMovieId(), request.getContent(), request.getRating());
+
+        return ResponseEntity.ok().body("Reseña añadida correctamente");
     }
 
     // Solo consulta (GET)
@@ -111,14 +136,8 @@ public class UserController {
 
     @GetMapping("/{userId}/followers")
     public ResponseEntity<?> getFollowers(@PathVariable("userId") Long userId) {
-        List<UserDto> followers = userService.getFollowers(userId);
+        List<UserDetailsDto> followers = userService.getFollowers(userId);
         return ResponseEntity.ok(followers);
-    }
-
-    @GetMapping("/{userId}/reviews")
-    public ResponseEntity<?> getReviews(@PathVariable("userId") Long userId) {
-        List<?> reviews = userService.getReviews(userId);
-        return ResponseEntity.ok(reviews);
     }
 
     @GetMapping("/{userId}/lists")

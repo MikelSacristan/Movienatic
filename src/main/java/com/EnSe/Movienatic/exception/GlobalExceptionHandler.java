@@ -40,6 +40,12 @@ public class GlobalExceptionHandler {
         return error(HttpStatus.UNAUTHORIZED, e.getMessage());
     }
 
+    // 404: usuario que se intenta dejar de seguir no está en la lista de seguidos
+    @ExceptionHandler(FollowingUserNotFoundException.class)
+    public ResponseEntity<Map<String, Object>> followingUserNotFound(FollowingUserNotFoundException e) {
+        return error(HttpStatus.NOT_FOUND, e.getMessage());
+    }
+
     // 400: fallos de @Valid (@NotBlank, @Email...) en el body de la petición.
     // Spring lanza esta excepción automáticamente; aquí la traducimos a un
     // mensaje legible campo por campo

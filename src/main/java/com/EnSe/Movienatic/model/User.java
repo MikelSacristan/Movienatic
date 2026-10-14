@@ -49,7 +49,7 @@ public class User {
 
     @ManyToMany
     @JoinTable(name = "user_favorite_movies", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "movie_id"))
-    private Set<Movie> favoriteMovies = new HashSet<>();
+    private Set<Movie> favouriteMovies = new HashSet<>();
 
     @ManyToMany
     @JoinTable(name = "user_pending_movies", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "movie_id"))
