@@ -3,6 +3,7 @@ package com.EnSe.Movienatic.controller;
 import com.EnSe.Movienatic.dto.MovieDto;
 import com.EnSe.Movienatic.exception.MovieNotFoundException;
 import com.EnSe.Movienatic.service.MovieService;
+import com.fasterxml.jackson.annotation.JsonView;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -33,6 +34,7 @@ public class MovieController {
     }
 
     @GetMapping("/{id}")
+     @JsonView(MovieDto.SummaryView.class)
     public MovieDto getMovieById(@PathVariable Long id) {
         MovieDto movie = movieService.getMovieById(id);
         if (movie == null) {
