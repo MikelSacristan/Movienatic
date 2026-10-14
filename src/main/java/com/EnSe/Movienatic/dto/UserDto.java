@@ -5,7 +5,7 @@ import jakarta.validation.constraints.NotBlank;
 
 // DTO con validaciones para la creación de un usuario
 public record UserDto(@NotBlank String username, @NotBlank @Email String email,
-        @NotBlank String password) {
+                @NotBlank String password) {
 
 }
 /*

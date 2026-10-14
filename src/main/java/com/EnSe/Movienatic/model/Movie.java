@@ -26,7 +26,6 @@ import lombok.Setter;
 @Table(name = "movies")
 public class Movie {
 
-    
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

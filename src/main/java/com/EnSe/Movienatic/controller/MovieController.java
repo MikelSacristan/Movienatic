@@ -33,7 +33,7 @@ public class MovieController {
     }
 
     @GetMapping("/{id}")
-     @JsonView(MovieDto.SummaryView.class)
+    @JsonView(MovieDto.SummaryView.class)
     public MovieDto getMovieById(@PathVariable Long id) {
         MovieDto movie = movieService.getMovieById(id);
         if (movie == null) {

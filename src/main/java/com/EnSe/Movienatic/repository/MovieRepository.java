@@ -17,6 +17,7 @@ public interface MovieRepository extends JpaRepository<Movie, Long> {
     // memoria cuáles ya están importados sin lanzar una consulta por película
     @Query("select m.title from Movie m")
     List<String> findAllTitles();
+
     @Query("SELECT m FROM User u JOIN u.pendingMovies m WHERE u.id = :userId")
     List<Movie> findPendingMoviesByUserId(@Param("userId") Long userId);
 }
