@@ -1,6 +1,11 @@
 package com.EnSe.Movienatic.model;
 
+import com.EnSe.Movienatic.dto.MovieDto;
+import com.EnSe.Movienatic.dto.MovieDto.ReviewView;
+import com.fasterxml.jackson.annotation.JsonView;
+
 import jakarta.persistence.Column;
+import jakarta.persistence.Embeddable;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;

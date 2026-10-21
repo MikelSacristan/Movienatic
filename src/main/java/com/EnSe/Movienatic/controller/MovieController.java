@@ -2,12 +2,14 @@ package com.EnSe.Movienatic.controller;
 
 import com.EnSe.Movienatic.dto.MovieDto;
 import com.EnSe.Movienatic.exception.MovieNotFoundException;
+import com.EnSe.Movienatic.model.Movie;
 import com.EnSe.Movienatic.service.MovieService;
 import com.fasterxml.jackson.annotation.JsonView;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -32,13 +34,32 @@ public class MovieController {
         return movieService.getMovies(pageable);
     }
 
-    @GetMapping("/{id}")
+    // Solo consulta (GET)
+
+    @GetMapping("/{movieId}")
     @JsonView(MovieDto.SummaryView.class)
-    public MovieDto getMovieById(@PathVariable Long id) {
-        MovieDto movie = movieService.getMovieById(id);
-        if (movie == null) {
-            throw new MovieNotFoundException(id);
-        }
-        return movie;
+    public ResponseEntity<?> getMovieById(@PathVariable("movieId") Long movieId) {
+        MovieDto movieDto = movieService.getMovieById(movieId);
+        return ResponseEntity.ok(movieDto);
+    }
+
+    @GetMapping("/{movieId}/detail")
+    @JsonView(MovieDto.DetailView.class)
+    public ResponseEntity<?> getMovieByIdAll(@PathVariable("movieId") Long movieId) {
+        MovieDto movieDto = movieService.getMovieById(movieId);
+        return ResponseEntity.ok(movieDto);
+    }
+
+    @GetMapping("/{movieId}/casting")
+    @JsonView(MovieDto.CastingView.class)
+    public ResponseEntity<?> getCasting(@PathVariable("movieId") Long movieId) {
+        MovieDto movieDto = movieService.getMovieById(movieId);
+        return ResponseEntity.ok(movieDto);
+    }
+    @GetMapping("/{movieId}/review")
+    @JsonView(MovieDto.ReviewView.class)
+    public ResponseEntity<?> getReviews(@PathVariable("movieId") Long movieId) {
+        MovieDto movieDto = movieService.getMovieById(movieId);
+        return ResponseEntity.ok(movieDto);
     }
 }

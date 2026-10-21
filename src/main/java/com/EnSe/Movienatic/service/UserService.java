@@ -41,7 +41,7 @@ public class UserService {
     }
 
     public User getUserById(Long id) {
-        return userRepository.findById(id).orElseThrow(() -> new UserNotFoundException(id.toString()));
+        return userRepository.findById(id).orElseThrow(() -> new UserNotFoundException(id));
     }
 
     // Películas pendientes

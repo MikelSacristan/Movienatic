@@ -2,6 +2,7 @@ package com.EnSe.Movienatic.service;
 
 import com.EnSe.Movienatic.dto.MovieDto;
 import com.EnSe.Movienatic.dto.ReviewDto;
+import com.EnSe.Movienatic.exception.*;
 import com.EnSe.Movienatic.model.Movie;
 import com.EnSe.Movienatic.repository.MovieRepository;
 
@@ -23,25 +24,23 @@ public class MovieService {
     // DTO, con el total y los metadatos de paginación de la Page
     @Transactional(readOnly = true)
     public Page<MovieDto> getMovies(Pageable pageable) {
-        return this.movieRepository.findAll(pageable).map(this::toDto);
+        return this.movieRepository.findAll(pageable).map(this::toMovieDto);
     }
 
     @Transactional(readOnly = true)
     public MovieDto getMovieById(Long id) {
-        return this.movieRepository.findById(id)
-                .map(this::toDto)
-                .orElse(null);
+        Movie movie = movieRepository.findById(id).orElseThrow(() -> new MovieNotFoundException(id));
+        return toMovieDto(movie);
     }
 
     @Transactional(readOnly = true)
-    public MovieDto getMovieByName(String name) {
-        return this.movieRepository.findByTitle(name)
-                .map(this::toDto)
-                .orElse(null);
+    public MovieDto getMovieByName(String title) {
+        Movie movie = movieRepository.findByTitle(title).orElseThrow(() -> new MovieNotFoundException(title));
+        return toMovieDto(movie);
     }
 
     // Método privado para convertir una entidad Movie a un DTO MovieDto
-    private MovieDto toDto(Movie movie) {
+    private MovieDto toMovieDto(Movie movie) {
         return new MovieDto(
                 movie.getId(),
                 movie.getTitle(),
