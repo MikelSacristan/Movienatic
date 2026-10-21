@@ -57,6 +57,11 @@ public class GlobalExceptionHandler {
         return error(HttpStatus.BAD_REQUEST, mensaje);
     }
 
+    @ExceptionHandler(ReviewNotFoundException.class)
+    public ResponseEntity<Map<String, Object>> reviewNotFound(ReviewNotFoundException e) {
+        return error(HttpStatus.NOT_FOUND, e.getMessage());
+    }
+
     // Forma común de respuesta de error
     private ResponseEntity<Map<String, Object>> error(HttpStatus status, String message) {
         Map<String, Object> body = new LinkedHashMap<>();

@@ -1,10 +1,13 @@
 package com.EnSe.Movienatic.controller;
 
 import com.EnSe.Movienatic.dto.MovieDto;
+import com.EnSe.Movienatic.dto.ReviewDto;
 import com.EnSe.Movienatic.exception.MovieNotFoundException;
 import com.EnSe.Movienatic.model.Movie;
 import com.EnSe.Movienatic.service.MovieService;
 import com.fasterxml.jackson.annotation.JsonView;
+
+import java.util.List;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -61,5 +64,14 @@ public class MovieController {
     public ResponseEntity<?> getReviews(@PathVariable("movieId") Long movieId) {
         MovieDto movieDto = movieService.getMovieById(movieId);
         return ResponseEntity.ok(movieDto);
+    }
+
+    @GetMapping("/{id}/reviews")
+    public List<ReviewDto> getReviewsByMovieId(@PathVariable Long id) {
+        MovieDto movie = movieService.getMovieById(id);
+        if (movie == null) {
+            throw new MovieNotFoundException(id);
+        }
+        return movie.reviews();
     }
 }

@@ -3,12 +3,12 @@ package com.EnSe.Movienatic.dto;
 public class ReviewRequest {
     private Long movieId;
     private String content;
-    private Integer rating;
+    private Double rating;
 
     public ReviewRequest() {
     }
 
-    public ReviewRequest(Long movieId, String content, Integer rating) {
+    public ReviewRequest(Long movieId, String content, Double rating) {
         this.movieId = movieId;
         this.content = content;
         this.rating = rating;
@@ -30,11 +30,11 @@ public class ReviewRequest {
         this.content = content;
     }
 
-    public Integer getRating() {
+    public Double getRating() {
         return rating;
     }
 
-    public void setRating(Integer rating) {
+    public void setRating(Double rating) {
         this.rating = rating;
     }
 }

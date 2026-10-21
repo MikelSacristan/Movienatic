@@ -1,22 +1,7 @@
 package com.EnSe.Movienatic.controller;
 
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
-import com.EnSe.Movienatic.dto.FavouriteRequest;
-import com.EnSe.Movienatic.dto.FollowRequest;
-import com.EnSe.Movienatic.dto.MovieDto;
-import com.EnSe.Movienatic.dto.PendingRequest;
-import com.EnSe.Movienatic.dto.ReviewRequest;
-import com.EnSe.Movienatic.dto.UserDetailsDto;
 import com.EnSe.Movienatic.dto.UserDto;
-import com.EnSe.Movienatic.model.Movie;
-import com.EnSe.Movienatic.model.User;
 import com.EnSe.Movienatic.service.UserService;
-
-import org.springframework.web.bind.annotation.RequestBody;
-
-import java.util.List;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -26,8 +11,8 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-
-import com.fasterxml.jackson.annotation.JsonView;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/users")
@@ -36,7 +21,7 @@ public class UserController {
     // Tamaño de página por defecto: 4 columnas x 5 filas = 20 películas
     private static final int DEFAULT_PAGE_SIZE = 20;
 
-    private UserService userService;
+    private final UserService userService;
 
     public UserController(UserService userService) {
         this.userService = userService;
@@ -47,64 +32,22 @@ public class UserController {
     public Page<UserDto> getUsers(@PageableDefault(size = DEFAULT_PAGE_SIZE) Pageable pageable) {
         return userService.getUsers(pageable);
     }
-    // Peliculas pendientes (GET, POST, DELETE)
-    @GetMapping("/{userId}/pending-movies")
-    @JsonView(MovieDto.SummaryView.class)
-    public ResponseEntity<?> getPendingMovies(@PathVariable("userId") Long userId) {
-        List<MovieDto> pendingMovies = userService.getPendingMovies(userId);
-        return ResponseEntity.ok(pendingMovies);
-    }
 
-    @PostMapping("/{userId}/pending-movies")
-    public ResponseEntity<?> addPending(@PathVariable("userId") Long userId, @RequestBody PendingRequest request) {
-        userService.addPending(userId, request.getMovieId());
-
-        return ResponseEntity.ok().body("Película añadida a pendientes correctamente");
-    }
-
-    @DeleteMapping("/{userId}/pending-movies/{movieId}")
-    public ResponseEntity<?> removePending(@PathVariable("userId") Long userId, @PathVariable("movieId") Long movieId) {
-        userService.removePending(userId, movieId);
-
-        return ResponseEntity.ok().body("Película eliminada de pendientes correctamente");
-    }
-
-    // Favoritas (GET, POST, DELETE)
-    @GetMapping("/{userId}/favourites")
-    @JsonView(MovieDto.SummaryView.class)
-    public ResponseEntity<?> getFavourites(@PathVariable("userId") Long userId) {
-        List<MovieDto> favourites = userService.getFavourites(userId);
-        return ResponseEntity.ok(favourites);
-    }
-
-    @PostMapping("/{userId}/favourites")
-    public ResponseEntity<?> addFavourite(@PathVariable("userId") Long userId, @RequestBody FavouriteRequest request) {
-        System.out.println("Añadiendo película a favoritas: userId=" + userId + ", movieId=" + request.getMovieId());
-        userService.addFavourite(userId, request.getMovieId());
-
-        return ResponseEntity.ok().body("Película añadida a favoritas correctamente");
-    }
-
-    @DeleteMapping("/{userId}/favourites/{movieId}")
-    public ResponseEntity<?> removeFavourite(@PathVariable("userId") Long userId,
-            @PathVariable("movieId") Long movieId) {
-        userService.removeFavourite(userId, movieId);
-
-        return ResponseEntity.ok().body("Película eliminada de favoritas correctamente");
+    @GetMapping("/{userId}")
+    public ResponseEntity<?> getUser(@PathVariable("userId") Long userId) {
+        return ResponseEntity.ok(userService.getUserById(userId));
     }
 
     // Siguiendo (GET, POST, DELETE)
     @GetMapping("/{userId}/following")
     public ResponseEntity<?> getFollowing(@PathVariable("userId") Long userId) {
-        List<UserDetailsDto> following = userService.getFollowing(userId);
-        return ResponseEntity.ok(following);
+        return ResponseEntity.ok(userService.getFollowing(userId));
     }
 
-    @PostMapping("/{userId}/following")
+    @PostMapping("/{userId}/following/{userIdToFollow}")
     public ResponseEntity<?> follow(@PathVariable("userId") Long userId,
-            @RequestBody FollowRequest request) {
-        userService.followUser(userId, request.getUserIdToFollow());
-
+            @PathVariable("userIdToFollow") Long userIdToFollow) {
+        userService.followUser(userId, userIdToFollow);
         return ResponseEntity.ok().body("Usuario seguido correctamente");
     }
 
@@ -112,41 +55,11 @@ public class UserController {
     public ResponseEntity<?> unfollow(@PathVariable("userId") Long userId,
             @PathVariable("userIdToUnfollow") Long userIdToUnfollow) {
         userService.unfollowUser(userId, userIdToUnfollow);
-
         return ResponseEntity.ok().body("Usuario dejado de seguir correctamente");
-    }
-
-    // Reviews (GET, POST, DELETE)
-    @GetMapping("/{userId}/reviews")
-    public ResponseEntity<?> getReviews(@PathVariable("userId") Long userId) {
-        List<?> reviews = userService.getReviews(userId);
-        return ResponseEntity.ok(reviews);
-    }
-
-    @PostMapping("/{userId}/reviews")
-    public ResponseEntity<?> addReview(@PathVariable("userId") Long userId, @RequestBody ReviewRequest request) {
-        userService.addReview(userId, request.getMovieId(), request.getContent(), request.getRating());
-
-        return ResponseEntity.ok().body("Reseña añadida correctamente");
-    }
-
-    // Solo consulta (GET)
-
-    @GetMapping("/{userId}")
-    public ResponseEntity<?> getUser(@PathVariable("userId") Long userId) {
-        User user = userService.getUserById(userId);
-        return ResponseEntity.ok(user);
     }
 
     @GetMapping("/{userId}/followers")
     public ResponseEntity<?> getFollowers(@PathVariable("userId") Long userId) {
-        List<UserDetailsDto> followers = userService.getFollowers(userId);
-        return ResponseEntity.ok(followers);
-    }
-
-    @GetMapping("/{userId}/lists")
-    public ResponseEntity<?> getLists(@PathVariable("userId") Long userId) {
-        List<?> lists = userService.getLists(userId);
-        return ResponseEntity.ok(lists);
+        return ResponseEntity.ok(userService.getFollowers(userId));
     }
 }
