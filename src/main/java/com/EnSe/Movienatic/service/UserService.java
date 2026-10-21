@@ -1,17 +1,20 @@
 package com.EnSe.Movienatic.service;
 
+import java.sql.Timestamp;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
 
 import com.EnSe.Movienatic.dto.MovieDto;
 import com.EnSe.Movienatic.dto.ReviewDto;
+import com.EnSe.Movienatic.dto.UpdateReviewRequest;
 import com.EnSe.Movienatic.dto.UserDetailsDto;
 import com.EnSe.Movienatic.dto.UserDto;
 import com.EnSe.Movienatic.model.User;
 import com.EnSe.Movienatic.model.Movie;
 import com.EnSe.Movienatic.model.Review;
 import com.EnSe.Movienatic.repository.MovieRepository;
+import com.EnSe.Movienatic.repository.ReviewRepository;
 import com.EnSe.Movienatic.repository.UserRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -23,10 +26,13 @@ public class UserService {
 
     private UserRepository userRepository;
     private MovieRepository movieRepository;
+    private ReviewRepository reviewRepository;
 
-    public UserService(UserRepository userRepository, MovieRepository movieRepository) {
+    public UserService(UserRepository userRepository, MovieRepository movieRepository,
+            ReviewRepository reviewRepository) {
         this.userRepository = userRepository;
         this.movieRepository = movieRepository;
+        this.reviewRepository = reviewRepository;
     }
 
     // Devuelve un bloque de usuarios paginado (por ejemplo 20 por página) ya en
@@ -140,7 +146,7 @@ public class UserService {
                 .toList();
     }
 
-    public void addReview(Long userId, Long movieId, String content, Integer rating) {
+    public void addReview(Long userId, Long movieId, String content, Double rating) {
         User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
         Movie movie = movieRepository.findById(movieId).orElseThrow(() -> new MovieNotFoundException(movieId));
         Review review = new Review();
@@ -148,8 +154,52 @@ public class UserService {
         review.setMovie(movie);
         review.setContent(content);
         review.setRating(rating);
+        review.setTimestamp(new Timestamp(System.currentTimeMillis()));
+
+        movie.getReviews().add(review);
         user.getReviews().add(review);
+
+        recalculateMovieRating(movie);
+
+        reviewRepository.save(review);
         userRepository.save(user);
+        movieRepository.save(movie);
+    }
+
+    public ReviewDto updateReview(Long userId, Long reviewId, UpdateReviewRequest request) {
+        Review review = reviewRepository.findById(reviewId)
+                .orElseThrow(() -> new ReviewNotFoundException(reviewId.toString()));
+        Movie movie = review.getMovie();
+
+        if (!review.getUser().getId().equals(userId)) {
+            throw new ReviewNotOwnedException(userId, reviewId);
+        }
+
+        if (request.content() != null) {
+            review.setContent(request.content());
+        }
+        if (request.rating() != null) {
+            review.setRating(request.rating());
+        }
+        review.setTimestamp(new Timestamp(System.currentTimeMillis()));
+
+        recalculateMovieRating(movie);
+
+        reviewRepository.save(review);
+        movieRepository.save(movie);
+
+        return toReviewDto(review);
+    }
+
+    // Método privado para recalcular la calificación promedio de una película y el
+    // número de calificaciones
+    private void recalculateMovieRating(Movie movie) {
+        Double averageRating = movie.getReviews().stream()
+                .mapToDouble(Review::getRating)
+                .average()
+                .orElse(0.0);
+        movie.setAverageRating(averageRating);
+        movie.setNumberOfRatings(movie.getReviews().size());
     }
 
     public List<?> getLists(Long userId) {
