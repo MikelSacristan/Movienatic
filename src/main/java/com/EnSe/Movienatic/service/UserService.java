@@ -52,7 +52,7 @@ public class UserService {
     }
 
     public User getUserById(Long id) {
-        return userRepository.findById(id).orElseThrow(() -> new UserNotFoundException(id.toString()));
+        return userRepository.findById(id).orElseThrow(() -> new UserNotFoundException(id));
     }
 
     // Películas pendientes
@@ -313,8 +313,8 @@ public class UserService {
                                 review.getId(),
                                 review.getContent(),
                                 review.getRating(),
-                                reviewLikeRepository.countLikesByReviewId(review.getId()),
-                                reviewLikeRepository.countDislikesByReviewId(review.getId()),
+                                reviewLikeRepository.countByReviewAndIsLike(review, true),
+                                reviewLikeRepository.countByReviewAndIsLike(review, false),
                                 review.getTimestamp()))
                         .toList());
     }
@@ -324,8 +324,8 @@ public class UserService {
                 review.getId(),
                 review.getContent(),
                 review.getRating(),
-                reviewLikeRepository.countLikesByReviewId(review.getId()),
-                reviewLikeRepository.countDislikesByReviewId(review.getId()),
+                reviewLikeRepository.countByReviewAndIsLike(review, true),
+                reviewLikeRepository.countByReviewAndIsLike(review, false),
                 review.getTimestamp());
     }
 }
