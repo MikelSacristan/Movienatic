@@ -4,6 +4,7 @@ import com.EnSe.Movienatic.dto.MovieDto;
 import com.EnSe.Movienatic.dto.ReviewDto;
 import com.EnSe.Movienatic.model.Movie;
 import com.EnSe.Movienatic.repository.MovieRepository;
+import com.EnSe.Movienatic.repository.ReviewLikeRepository;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -14,9 +15,11 @@ import org.springframework.transaction.annotation.Transactional;
 public class MovieService {
 
     private MovieRepository movieRepository;
+    private ReviewLikeRepository reviewLikeRepository;
 
-    public MovieService(MovieRepository movieRepository) {
+    public MovieService(MovieRepository movieRepository, ReviewLikeRepository reviewLikeRepository) {
         this.movieRepository = movieRepository;
+        this.reviewLikeRepository = reviewLikeRepository;
     }
 
     // Devuelve un bloque de películas paginado (por ejemplo 20 por página) ya en
@@ -57,8 +60,8 @@ public class MovieService {
                                 review.getId(),
                                 review.getContent(),
                                 review.getRating(),
-                                review.getLikes(),
-                                review.getDislikes(),
+                                reviewLikeRepository.countLikesByReviewId(review.getId()),
+                                reviewLikeRepository.countDislikesByReviewId(review.getId()),
                                 review.getTimestamp()))
                         .toList());
     }

@@ -5,6 +5,7 @@ import com.EnSe.Movienatic.dto.UpdateReviewRequest;
 import com.EnSe.Movienatic.service.UserService;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -40,5 +41,26 @@ public class ReviewController {
     @GetMapping("")
     public ResponseEntity<?> getReviews(@PathVariable("userId") Long userId) {
         return ResponseEntity.ok(userService.getReviews(userId));
+    }
+
+    @DeleteMapping("/{reviewId}")
+    public ResponseEntity<?> deleteReview(@PathVariable("userId") Long userId,
+            @PathVariable("reviewId") Long reviewId) {
+        userService.deleteReview(userId, reviewId);
+        return ResponseEntity.ok().body("Reseña eliminada correctamente");
+    }
+
+    @PatchMapping("/{reviewId}/like")
+    public ResponseEntity<?> likeReview(@PathVariable("userId") Long userId,
+            @PathVariable("reviewId") Long reviewId) {
+        String message = userService.likeReview(userId, reviewId);
+        return ResponseEntity.ok().body(message);
+    }
+
+    @PatchMapping("/{reviewId}/dislike")
+    public ResponseEntity<?> dislikeReview(@PathVariable("userId") Long userId,
+            @PathVariable("reviewId") Long reviewId) {
+        String message = userService.dislikeReview(userId, reviewId);
+        return ResponseEntity.ok().body(message);
     }
 }

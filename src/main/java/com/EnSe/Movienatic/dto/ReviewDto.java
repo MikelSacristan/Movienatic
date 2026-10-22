@@ -7,8 +7,8 @@ public record ReviewDto(
                 Long id,
                 String content,
                 Double rating,
-                Integer likes,
-                Integer dislikes,
+                Long likes,
+                Long dislikes,
                 Timestamp timestamp) {
 
 }
