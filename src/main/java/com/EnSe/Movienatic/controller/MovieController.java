@@ -3,7 +3,6 @@ package com.EnSe.Movienatic.controller;
 import com.EnSe.Movienatic.dto.MovieDto;
 import com.EnSe.Movienatic.dto.ReviewDto;
 import com.EnSe.Movienatic.exception.MovieNotFoundException;
-import com.EnSe.Movienatic.model.Movie;
 import com.EnSe.Movienatic.service.MovieService;
 import com.fasterxml.jackson.annotation.JsonView;
 
@@ -59,6 +58,7 @@ public class MovieController {
         MovieDto movieDto = movieService.getMovieById(movieId);
         return ResponseEntity.ok(movieDto);
     }
+
     @GetMapping("/{movieId}/review")
     @JsonView(MovieDto.ReviewView.class)
     public ResponseEntity<?> getReviews(@PathVariable("movieId") Long movieId) {

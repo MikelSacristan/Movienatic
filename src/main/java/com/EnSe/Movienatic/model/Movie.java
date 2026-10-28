@@ -15,6 +15,8 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OrderColumn;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.DecimalMax;
+import jakarta.validation.constraints.DecimalMin;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -23,7 +25,11 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @Entity
-@Table(name = "movies")
+@Table(name = "movies", indexes = {
+        @jakarta.persistence.Index(name = "idx_title", columnList = "title"),
+        @jakarta.persistence.Index(name = "idx_genre", columnList = "genre"),
+        @jakarta.persistence.Index(name = "idx_release_year", columnList = "releaseYear")
+})
 public class Movie {
 
     @Id
@@ -49,8 +55,8 @@ public class Movie {
 
     @Column(nullable = true)
     private String posterURL;
-
-    @Column(nullable = true)
+    @DecimalMin("0.5")
+    @DecimalMax("5.0")
     private Double averageRating;
 
     @Column(nullable = true)

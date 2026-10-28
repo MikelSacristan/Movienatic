@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import jakarta.validation.ConstraintViolationException;
 
 // Un único punto donde todas las excepciones se convierten en respuesta JSON.
 // Así los controllers no necesitan try/catch y todos los errores salen con la
@@ -53,6 +54,15 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Map<String, Object>> validacion(MethodArgumentNotValidException e) {
         String mensaje = e.getBindingResult().getFieldErrors().stream()
                 .map(err -> err.getField() + ": " + err.getDefaultMessage())
+                .collect(Collectors.joining(", "));
+        return error(HttpStatus.BAD_REQUEST, mensaje);
+    }
+
+    // 400: fallos de validación en entidades (por ejemplo @Step en Review o Movie)
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ResponseEntity<Map<String, Object>> violacion(ConstraintViolationException e) {
+        String mensaje = e.getConstraintViolations().stream()
+                .map(v -> v.getPropertyPath() + ": " + v.getMessage())
                 .collect(Collectors.joining(", "));
         return error(HttpStatus.BAD_REQUEST, mensaje);
     }

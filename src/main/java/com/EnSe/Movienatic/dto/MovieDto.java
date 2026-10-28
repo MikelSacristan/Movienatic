@@ -12,7 +12,7 @@ public record MovieDto(
                 @JsonView(DetailView.class) String description,
                 @JsonView(DetailView.class) String genre,
                 @JsonView(DetailView.class) int releaseYear,
-                @JsonView({DetailView.class, CastingView.class}) List<CastMember> casting,
+                @JsonView({ DetailView.class, CastingView.class }) List<CastMember> casting,
                 @JsonView(DetailView.class) String posterURL,
                 @JsonView(DetailView.class) Double averageRating,
                 @JsonView(DetailView.class) Integer numberOfRatings,
@@ -21,10 +21,11 @@ public record MovieDto(
         public interface SummaryView {
         }
 
-        public interface ReviewView{
-                
+        public interface ReviewView {
+
         }
-        public interface CastingView{
+
+        public interface CastingView {
 
         }
 
