@@ -1,12 +1,13 @@
 package com.EnSe.Movienatic.repository;
 
-import com.EnSe.Movienatic.model.Review;
-import com.EnSe.Movienatic.model.ReviewLike;
+import java.util.Optional;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 
-import java.util.Optional;
+import com.EnSe.Movienatic.model.Review;
+import com.EnSe.Movienatic.model.ReviewLike;
 
 public interface ReviewLikeRepository extends JpaRepository<ReviewLike, Long> {
 
@@ -17,6 +18,6 @@ public interface ReviewLikeRepository extends JpaRepository<ReviewLike, Long> {
     @Query("delete from ReviewLike r where r.user.id = :userId and r.review.id = :reviewId")
     void deleteByUserIdAndReviewId(Long userId, Long reviewId);
 
-    @Query("SELECT COUNT(r) FROM ReviewLike r WHERE r.review = ?1 AND r.isLike = ?2")
+    @Query("select count(r) from ReviewLike r where r.review = :review and r.isLike = :b")
     Integer countByReviewAndIsLike(Review review, boolean b);
 }

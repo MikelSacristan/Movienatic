@@ -13,9 +13,11 @@ import com.EnSe.Movienatic.dto.UserDetailDto;
 import com.EnSe.Movienatic.dto.UserDetailsDto;
 import com.EnSe.Movienatic.model.User;
 import com.EnSe.Movienatic.model.Movie;
+import com.EnSe.Movienatic.model.MovieList;
 import com.EnSe.Movienatic.model.Review;
 import com.EnSe.Movienatic.model.ReviewLike;
 import com.EnSe.Movienatic.repository.MovieRepository;
+import com.EnSe.Movienatic.repository.MovieListRepository;
 import com.EnSe.Movienatic.repository.ReviewLikeRepository;
 import com.EnSe.Movienatic.repository.ReviewRepository;
 import com.EnSe.Movienatic.repository.UserRepository;
@@ -32,12 +34,14 @@ public class UserService {
     private MovieRepository movieRepository;
     private ReviewRepository reviewRepository;
     private ReviewLikeRepository reviewLikeRepository;
+    private MovieListRepository movieListRepository;
 
     public UserService(UserRepository userRepository, MovieRepository movieRepository,
-            ReviewRepository reviewRepository, ReviewLikeRepository reviewLikeRepository) {
+            ReviewRepository reviewRepository, MovieListRepository movieListRepository,ReviewLikeRepository reviewLikeRepository) {
         this.userRepository = userRepository;
         this.movieRepository = movieRepository;
         this.reviewRepository = reviewRepository;
+        this.movieListRepository = movieListRepository;
         this.reviewLikeRepository = reviewLikeRepository;
     }
 
@@ -112,6 +116,16 @@ public class UserService {
             throw new FavoriteMovieNotFoundException(userId, movieId);
         user.getFavouriteMovies().remove(movie);
         userRepository.save(user);
+    }
+
+    // Listas del usuario
+    @Transactional(readOnly = true)
+    public List<MovieDto> getListById(Long userId, Long listId) {
+        MovieList movieList = movieListRepository.findByUser_IdAndId(userId,listId).orElseThrow(() -> new ListNotFoundException(listId));
+        return movieList.getMovies()
+                .stream()
+                .map(this::toMovieDto)
+                .toList();
     }
 
     // Siguiendo
