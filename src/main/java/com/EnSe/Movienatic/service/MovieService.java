@@ -59,8 +59,8 @@ public class MovieService {
                                 review.getId(),
                                 review.getContent(),
                                 review.getRating(),
-                                reviewLikeRepository.countLikesByReviewId(review.getId()),
-                                reviewLikeRepository.countDislikesByReviewId(review.getId()),
+                                reviewLikeRepository.countByReviewAndIsLike(review, true),
+                                reviewLikeRepository.countByReviewAndIsLike(review, false),
                                 review.getTimestamp()))
                         .toList());
     }

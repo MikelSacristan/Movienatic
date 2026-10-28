@@ -1,7 +1,7 @@
 package com.EnSe.Movienatic.model;
 
-import java.util.List;
-
+import java.util.HashSet;
+import java.util.Set;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -40,5 +40,5 @@ public class MovieList {
 
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(name = "movie_list_movies", joinColumns = @JoinColumn(name = "movie_list_id"), inverseJoinColumns = @JoinColumn(name = "movie_id"))
-    private List<Movie> movies;
+    private Set<Movie> movies = new HashSet<>();
 }

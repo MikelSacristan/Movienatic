@@ -3,7 +3,6 @@ package com.EnSe.Movienatic.model;
 import java.sql.Timestamp;
 
 import jakarta.persistence.Column;
-import jakarta.persistence.Embeddable;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
