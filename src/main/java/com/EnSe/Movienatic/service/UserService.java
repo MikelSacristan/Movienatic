@@ -12,7 +12,9 @@ import com.EnSe.Movienatic.dto.UserDetailsDto;
 import com.EnSe.Movienatic.dto.UserDto;
 import com.EnSe.Movienatic.model.User;
 import com.EnSe.Movienatic.model.Movie;
+import com.EnSe.Movienatic.model.MovieList;
 import com.EnSe.Movienatic.model.Review;
+import com.EnSe.Movienatic.repository.MovieListRepository;
 import com.EnSe.Movienatic.repository.MovieRepository;
 import com.EnSe.Movienatic.repository.ReviewRepository;
 import com.EnSe.Movienatic.repository.UserRepository;
@@ -27,12 +29,14 @@ public class UserService {
     private UserRepository userRepository;
     private MovieRepository movieRepository;
     private ReviewRepository reviewRepository;
+    private MovieListRepository movieListRepository;
 
     public UserService(UserRepository userRepository, MovieRepository movieRepository,
-            ReviewRepository reviewRepository) {
+            ReviewRepository reviewRepository, MovieListRepository movieListRepository) {
         this.userRepository = userRepository;
         this.movieRepository = movieRepository;
         this.reviewRepository = reviewRepository;
+        this.movieListRepository = movieListRepository;
     }
 
     // Devuelve un bloque de usuarios paginado (por ejemplo 20 por página) ya en
@@ -101,6 +105,15 @@ public class UserService {
             throw new FavoriteMovieNotFoundException(userId, movieId);
         user.getFavouriteMovies().remove(movie);
         userRepository.save(user);
+    }
+
+    // Listas del usuario
+    @Transactional(readOnly = true)
+    public List<MovieDto> getListById(Long userId, Long listId) {
+        MovieList movieList = movieListRepository.findByUserIdAndId(userId, listId).orElseThrow(() -> new ListNotFoundException(listId));
+        return movieList.getMovies().stream()
+            .map(this::toMovieDto)
+            .toList();
     }
 
     // Siguiendo

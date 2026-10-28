@@ -60,6 +60,27 @@ public class MovieListController {
         return ResponseEntity.ok().body("Película eliminada de favoritas correctamente");
     }
 
+    // Listas creadas por el usuario (GET, POST, DELETE)
+    @GetMapping("/{listId}")
+    public ResponseEntity<?> getListById(@PathVariable("userId") Long userId,
+        @PathVariable("listId") Long listId) {
+        return ResponseEntity.ok(userService.getListById(userId,listId));
+    }
+
+    @PostMapping("/{listId}")
+    public ResponseEntity<?> addList(@PathVariable("userId") Long userId,
+            @PathVariable("movieId") Long movieId) {
+        userService.addFavourite(userId, movieId);
+        return ResponseEntity.ok().body("Película añadida a favoritas correctamente");
+    }
+
+    @DeleteMapping("/{listId}")
+    public ResponseEntity<?> removeList(@PathVariable("userId") Long userId,
+            @PathVariable("movieId") Long movieId) {
+        userService.removeFavourite(userId, movieId);
+        return ResponseEntity.ok().body("Película eliminada de favoritas correctamente");
+    }
+
     // Listas (GET)
     @GetMapping("")
     public ResponseEntity<?> getLists(@PathVariable("userId") Long userId) {
