@@ -9,8 +9,8 @@ import org.springframework.stereotype.Service;
 import com.EnSe.Movienatic.dto.MovieDto;
 import com.EnSe.Movienatic.dto.ReviewDto;
 import com.EnSe.Movienatic.dto.UpdateReviewRequest;
+import com.EnSe.Movienatic.dto.UserDetailDto;
 import com.EnSe.Movienatic.dto.UserDetailsDto;
-import com.EnSe.Movienatic.dto.UserDto;
 import com.EnSe.Movienatic.model.User;
 import com.EnSe.Movienatic.model.Movie;
 import com.EnSe.Movienatic.model.Review;
@@ -19,6 +19,7 @@ import com.EnSe.Movienatic.repository.MovieRepository;
 import com.EnSe.Movienatic.repository.ReviewLikeRepository;
 import com.EnSe.Movienatic.repository.ReviewRepository;
 import com.EnSe.Movienatic.repository.UserRepository;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
@@ -43,8 +44,8 @@ public class UserService {
     // Devuelve un bloque de usuarios paginado (por ejemplo 20 por página) ya en
     // DTO, con el total y los metadatos de paginación de la Page
     @Transactional(readOnly = true)
-    public Page<UserDto> getUsers(Pageable pageable) {
-        return this.userRepository.findAll(pageable).map(this::toUserDto);
+    public Page<UserDetailsDto> getUsers(Pageable pageable) {
+        return this.userRepository.findAll(pageable).map(this::toUserDetailsDto);
     }
 
     public User getUserByName(String name) {
@@ -55,6 +56,11 @@ public class UserService {
         return userRepository.findById(id).orElseThrow(() -> new UserNotFoundException(id));
     }
 
+    @Transactional(readOnly = true)
+    public UserDetailDto getUserPublicById(Long id) {
+        User user = getUserById(id);
+        return toUserDetailDto(user);
+    }
     // Películas pendientes
     @Transactional(readOnly = true)
     public List<MovieDto> getPendingMovies(Long userId) {
@@ -285,15 +291,19 @@ public class UserService {
     }
 
     private UserDetailsDto toUserDetailsDto(User user) {
-        return new UserDetailsDto(user.getId(), user.getUsername());
+        return new UserDetailsDto(user.getId(), user.getUsername(), user.getPhotoURL());
     }
 
-    // Método privado para convertir una entidad User a un DTO UserDto
-    private UserDto toUserDto(User user) {
-        return new UserDto(
+    private UserDetailDto toUserDetailDto(User user) {
+        return new UserDetailDto(
+                user.getId(),
                 user.getUsername(),
-                user.getEmail(),
-                user.getPassword());
+                user.getPhotoURL(),
+                user.getFavouriteMovies() == null ? 0 : user.getFavouriteMovies().size(),
+                user.getPendingMovies() == null ? 0 : user.getPendingMovies().size(),
+                user.getReviews() == null ? 0 : user.getReviews().size(),
+                user.getFollowing() == null ? 0 : user.getFollowing().size(),
+                user.getFollowers() == null ? 0 : user.getFollowers().size());
     }
 
     // Método privado para convertir una entidad Movie a un DTO MovieDto

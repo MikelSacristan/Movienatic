@@ -1,33 +1,21 @@
 package com.EnSe.Movienatic.dto;
 
+import com.fasterxml.jackson.annotation.JsonView;
+
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 
-// DTO con validaciones para la creación de un usuario
-public record UserDto(@NotBlank String username, @NotBlank @Email String email,
-                @NotBlank String password) {
+public record UserDto(
+        @JsonView(PublicView.class) @NotBlank String username,
+        @JsonView(PrivateView.class) @NotBlank @Email String email,
+        @JsonView(PrivateView.class) @NotBlank String password) {
 
+    public interface PublicView {
+    }
+
+    public interface DetailedView extends PublicView {
+    }
+
+    public interface PrivateView {
+    }
 }
-/*
- * package com.EnSe.Movienatic.dto;
- * 
- * import com.fasterxml.jackson.annotation.JsonView;
- * 
- * public record UserDto (
- * 
- * @JsonView(Views.Public.class) String username,
- * 
- * @JsonView(Views.Public.class) String email,
- * 
- * @JsonView(Views.Public.class) String password
- * ){
- * public static UserDto from(com.EnSe.Movienatic.model.User user) {
- * return new UserDto(user.getUsername(), user.getEmail(), user.getPassword());
- * }
- * 
- * public interface Views {
- * interface Public {}
- * interface Private extends Public {}
- * }
- * }
- */

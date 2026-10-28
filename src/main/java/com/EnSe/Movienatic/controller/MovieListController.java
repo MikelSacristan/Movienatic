@@ -1,6 +1,8 @@
 package com.EnSe.Movienatic.controller;
 
+import com.EnSe.Movienatic.dto.MovieDto;
 import com.EnSe.Movienatic.service.UserService;
+import com.fasterxml.jackson.annotation.JsonView;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -11,7 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/users/{userId}/lists")
+@RequestMapping("/users/{userId}")
 public class MovieListController {
 
     private final UserService userService;
@@ -22,6 +24,7 @@ public class MovieListController {
 
     // Películas pendientes (GET, POST, DELETE)
     @GetMapping("/pending")
+    @JsonView(MovieDto.SummaryView.class)
     public ResponseEntity<?> getPendingMovies(@PathVariable("userId") Long userId) {
         return ResponseEntity.ok(userService.getPendingMovies(userId));
     }
@@ -42,6 +45,7 @@ public class MovieListController {
 
     // Favoritas (GET, POST, DELETE)
     @GetMapping("/favourites")
+    @JsonView(MovieDto.SummaryView.class)
     public ResponseEntity<?> getFavourites(@PathVariable("userId") Long userId) {
         return ResponseEntity.ok(userService.getFavourites(userId));
     }
@@ -61,7 +65,7 @@ public class MovieListController {
     }
 
     // Listas (GET)
-    @GetMapping("")
+    @GetMapping("/lists")
     public ResponseEntity<?> getLists(@PathVariable("userId") Long userId) {
         return ResponseEntity.ok(userService.getLists(userId));
     }

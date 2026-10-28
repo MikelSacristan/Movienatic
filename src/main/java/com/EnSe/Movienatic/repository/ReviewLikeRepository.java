@@ -17,5 +17,6 @@ public interface ReviewLikeRepository extends JpaRepository<ReviewLike, Long> {
     @Query("delete from ReviewLike r where r.user.id = :userId and r.review.id = :reviewId")
     void deleteByUserIdAndReviewId(Long userId, Long reviewId);
 
+    @Query("SELECT COUNT(r) FROM ReviewLike r WHERE r.review = ?1 AND r.isLike = ?2")
     Integer countByReviewAndIsLike(Review review, boolean b);
 }

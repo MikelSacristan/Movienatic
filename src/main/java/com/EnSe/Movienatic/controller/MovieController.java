@@ -1,6 +1,7 @@
 package com.EnSe.Movienatic.controller;
 
 import com.EnSe.Movienatic.dto.MovieDto;
+import com.EnSe.Movienatic.dto.MoviePageResponse;
 import com.EnSe.Movienatic.dto.ReviewDto;
 import com.EnSe.Movienatic.exception.MovieNotFoundException;
 import com.EnSe.Movienatic.service.MovieService;
@@ -31,9 +32,21 @@ public class MovieController {
     }
 
     // Paginación offset: ?page=0&size=20 (permite saltar a cualquier página)
+    // Se usa MoviePageResponse en vez de Page directamente para que @JsonView
+    // aplique SummaryView sobre el contenido sin conflictos con el wrapper de
+    // Spring Data (PageImpl).
     @GetMapping("")
-    public Page<MovieDto> getMovies(@PageableDefault(size = DEFAULT_PAGE_SIZE) Pageable pageable) {
-        return movieService.getMovies(pageable);
+    @JsonView(MovieDto.SummaryView.class)
+    public ResponseEntity<MoviePageResponse> getMovies(
+            @PageableDefault(size = DEFAULT_PAGE_SIZE) Pageable pageable) {
+        Page<MovieDto> page = movieService.getMovies(pageable);
+        MoviePageResponse response = new MoviePageResponse(
+                page.getContent(),
+                page.getTotalPages(),
+                page.getTotalElements(),
+                page.getNumber(),
+                page.getSize());
+        return ResponseEntity.ok(response);
     }
 
     // Solo consulta (GET)

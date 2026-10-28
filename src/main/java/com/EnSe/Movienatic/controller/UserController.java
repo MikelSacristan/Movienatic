@@ -1,6 +1,7 @@
 package com.EnSe.Movienatic.controller;
 
-import com.EnSe.Movienatic.dto.UserDto;
+import com.EnSe.Movienatic.dto.UserDetailDto;
+import com.EnSe.Movienatic.dto.UserDetailsDto;
 import com.EnSe.Movienatic.service.UserService;
 
 import org.springframework.data.domain.Page;
@@ -8,6 +9,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
+
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -27,15 +29,15 @@ public class UserController {
         this.userService = userService;
     }
 
-    // Paginación offset: ?page=0&size=20 (permite saltar a cualquier página)
     @GetMapping("")
-    public Page<UserDto> getUsers(@PageableDefault(size = DEFAULT_PAGE_SIZE) Pageable pageable) {
+    // @JsonView(UserDto.PublicView.class)
+    public Page<UserDetailsDto> getUsers(@PageableDefault(size = DEFAULT_PAGE_SIZE) Pageable pageable) {
         return userService.getUsers(pageable);
     }
 
     @GetMapping("/{userId}")
-    public ResponseEntity<?> getUser(@PathVariable("userId") Long userId) {
-        return ResponseEntity.ok(userService.getUserById(userId));
+    public ResponseEntity<UserDetailDto> getUser(@PathVariable("userId") Long userId) {
+        return ResponseEntity.ok(userService.getUserPublicById(userId));
     }
 
     // Siguiendo (GET, POST, DELETE)

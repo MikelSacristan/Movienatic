@@ -13,7 +13,7 @@ public record MovieDto(
                 @JsonView(DetailView.class) String genre,
                 @JsonView(DetailView.class) int releaseYear,
                 @JsonView({ DetailView.class, CastingView.class }) List<CastMember> casting,
-                @JsonView(DetailView.class) String posterURL,
+                @JsonView(SummaryView.class) String posterURL,
                 @JsonView(DetailView.class) Double averageRating,
                 @JsonView(DetailView.class) Integer numberOfRatings,
                 @JsonView(ReviewView.class) List<ReviewDto> reviews) {
