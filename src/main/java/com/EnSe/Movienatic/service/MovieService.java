@@ -1,5 +1,6 @@
 package com.EnSe.Movienatic.service;
 
+import com.EnSe.Movienatic.dto.GenreDto;
 import com.EnSe.Movienatic.dto.MovieDto;
 import com.EnSe.Movienatic.dto.ReviewDto;
 import com.EnSe.Movienatic.exception.*;
@@ -48,7 +49,9 @@ public class MovieService {
                 movie.getId(),
                 movie.getTitle(),
                 movie.getDescription(),
-                movie.getGenre(),
+                movie.getGenres().stream()
+                        .map(g -> new GenreDto(g.getId(), g.getName()))
+                        .toList(),
                 movie.getReleaseYear(),
                 movie.getCasting(),
                 movie.getPosterURL(),
