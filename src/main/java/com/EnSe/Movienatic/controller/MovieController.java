@@ -1,6 +1,7 @@
 package com.EnSe.Movienatic.controller;
 
 import com.EnSe.Movienatic.dto.MovieDto;
+import com.EnSe.Movienatic.dto.MovieFilter;
 import com.EnSe.Movienatic.dto.MoviePageResponse;
 import com.EnSe.Movienatic.dto.ReviewDto;
 import com.EnSe.Movienatic.exception.MovieNotFoundException;
@@ -38,8 +39,8 @@ public class MovieController {
     @GetMapping("")
     @JsonView(MovieDto.SummaryView.class)
     public ResponseEntity<MoviePageResponse> getMovies(
-            @PageableDefault(size = DEFAULT_PAGE_SIZE) Pageable pageable) {
-        Page<MovieDto> page = movieService.getMovies(pageable);
+            @PageableDefault(size = DEFAULT_PAGE_SIZE) Pageable pageable, MovieFilter filter) {
+        Page<MovieDto> page = movieService.getMovies(filter, pageable);
         MoviePageResponse response = new MoviePageResponse(
                 page.getContent(),
                 page.getTotalPages(),

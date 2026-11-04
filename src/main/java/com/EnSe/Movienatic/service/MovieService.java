@@ -2,14 +2,17 @@ package com.EnSe.Movienatic.service;
 
 import com.EnSe.Movienatic.dto.GenreDto;
 import com.EnSe.Movienatic.dto.MovieDto;
+import com.EnSe.Movienatic.dto.MovieFilter;
 import com.EnSe.Movienatic.dto.ReviewDto;
 import com.EnSe.Movienatic.exception.*;
 import com.EnSe.Movienatic.model.Movie;
 import com.EnSe.Movienatic.repository.MovieRepository;
 import com.EnSe.Movienatic.repository.ReviewLikeRepository;
+import com.EnSe.Movienatic.specification.MovieSpecification;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,8 +30,9 @@ public class MovieService {
     // Devuelve un bloque de películas paginado (por ejemplo 20 por página) ya en
     // DTO, con el total y los metadatos de paginación de la Page
     @Transactional(readOnly = true)
-    public Page<MovieDto> getMovies(Pageable pageable) {
-        return this.movieRepository.findAll(pageable).map(this::toMovieDto);
+    public Page<MovieDto> getMovies(MovieFilter filter, Pageable pageable) {
+        Specification<Movie> spec = MovieSpecification.withFilters(filter);
+        return movieRepository.findAll(spec, pageable).map(this::toMovieDto);
     }
 
     @Transactional(readOnly = true)
