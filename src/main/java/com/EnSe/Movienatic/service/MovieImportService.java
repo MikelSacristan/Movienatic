@@ -4,15 +4,17 @@ import com.EnSe.Movienatic.dto.TmdbCreditsResponse;
 import com.EnSe.Movienatic.dto.TmdbMovieDto;
 import com.EnSe.Movienatic.dto.TmdbResponse;
 import com.EnSe.Movienatic.model.CastMember;
+import com.EnSe.Movienatic.model.Genre;
 import com.EnSe.Movienatic.model.Movie;
+import com.EnSe.Movienatic.repository.GenreRepository;
 import com.EnSe.Movienatic.repository.MovieRepository;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -28,25 +30,29 @@ public class MovieImportService {
 
     private final TmdbService tmdbService;
     private final MovieRepository movieRepository;
+    private final GenreRepository genreRepository;
     private final String imageBaseUrl;
 
     public MovieImportService(
             TmdbService tmdbService,
             MovieRepository movieRepository,
+            GenreRepository genreRepository,
             @Value("${tmdb.api.image-base-url}") String imageBaseUrl) {
         this.tmdbService = tmdbService;
         this.movieRepository = movieRepository;
+        this.genreRepository = genreRepository;
         this.imageBaseUrl = imageBaseUrl;
     }
 
     // Importa las películas descubiertas de TMDB y guarda en la BD solo las que no
     // están ya importadas. Los títulos existentes se obtienen en una única
-    // consulta y se comparan en memoria, evitando el patrón N+1 de consultar
-    // por cada película. Devuelve el número de películas nuevas importadas.
+    // consulta y se comparan en memoria. Devuelve el número de películas nuevas
+    // importadas.
     @Transactional
     public int importPopularMovies(int pages) {
-        Map<Long, String> genreNames = tmdbService.fetchGenreNames(); // Mapea los IDs de género a nombres para poder
-                                                                      // guardarlos en la BD
+        Map<Long, String> genreNames = tmdbService.fetchGenreNames(); // Mapea los IDs de TMDB a nombres de género
+        Map<Long, Genre> genreEntities = ensureGenresExist(genreNames); // Busca o crea entidades Genre en la BD
+
         // En cada inicio de la aplicación, se obtienen los títulos existentes en la BD
         // para evitar duplicados
         Set<String> existingTitles = new HashSet<>(movieRepository.findAllTitles());
@@ -62,7 +68,7 @@ public class MovieImportService {
                 if (!existingTitles.add(dto.title())) {
                     continue;
                 }
-                newMovies.add(toEntity(dto, genreNames));
+                newMovies.add(toEntity(dto, genreEntities));
                 imported++;
             }
         }
@@ -71,13 +77,28 @@ public class MovieImportService {
         return imported;
     }
 
+    // Busca en BD cada género por nombre; si no existe, lo crea. Devuelve un mapa
+    // de id de TMDB -> entidad Genre para poder relacionar las películas.
+    private Map<Long, Genre> ensureGenresExist(Map<Long, String> genreNames) {
+        Map<Long, Genre> genreEntities = new HashMap<>();
+        if (genreNames == null) {
+            return genreEntities;
+        }
+        for (Map.Entry<Long, String> entry : genreNames.entrySet()) {
+            Genre genre = genreRepository.findByName(entry.getValue())
+                    .orElseGet(() -> genreRepository.save(new Genre(entry.getValue())));
+            genreEntities.put(entry.getKey(), genre);
+        }
+        return genreEntities;
+    }
+
     // Convierte un TmdbMovieDto a una entidad Movie, mapeando los géneros, el
     // reparto y la URL del póster, sin importar el rating
-    private Movie toEntity(TmdbMovieDto dto, Map<Long, String> genreNames) {
+    private Movie toEntity(TmdbMovieDto dto, Map<Long, Genre> genreEntities) {
         Movie movie = new Movie();
         movie.setTitle(dto.title());
         movie.setDescription(dto.overview() != null ? dto.overview() : "");
-        movie.setGenre(mapGenres(dto.genreIds(), genreNames));
+        movie.setGenres(mapGenres(dto.genreIds(), genreEntities));
         movie.setReleaseYear(parseYear(dto.releaseDate()));
         movie.setCasting(fetchCasting(dto.id())); // Obtiene el reparto de la película desde TMDB, limitando a
                                                   // MAX_CAST_SIZE y ordenando por relevancia
@@ -105,15 +126,19 @@ public class MovieImportService {
         }
     }
 
-    // Mapea los IDs de género a nombres, devolviendo "Sin género" si no hay géneros
-    private String mapGenres(List<Integer> genreIds, Map<Long, String> genreNames) {
-        if (genreIds == null || genreIds.isEmpty()) {
-            return "Sin género";
+    // Mapea los IDs de género de TMDB a entidades Genre existentes en BD
+    private Set<Genre> mapGenres(List<Integer> genreIds, Map<Long, Genre> genreEntities) {
+        Set<Genre> genres = new HashSet<>();
+        if (genreIds == null || genreIds.isEmpty() || genreEntities == null) {
+            return genres;
         }
-        return genreIds.stream()
-                .map(id -> genreNames.getOrDefault(Long.valueOf(id), "Sin género"))
-                .distinct()
-                .collect(Collectors.joining(", "));
+        for (Integer id : genreIds) {
+            Genre genre = genreEntities.get(Long.valueOf(id));
+            if (genre != null) {
+                genres.add(genre);
+            }
+        }
+        return genres;
     }
 
     // Extrae el año de la fecha de lanzamiento, devolviendo 0 si no es válido

@@ -6,6 +6,7 @@ import java.util.Optional;
 
 import org.springframework.stereotype.Service;
 
+import com.EnSe.Movienatic.dto.GenreDto;
 import com.EnSe.Movienatic.dto.MovieDto;
 import com.EnSe.Movienatic.dto.ReviewDto;
 import com.EnSe.Movienatic.dto.UpdateReviewRequest;
@@ -327,7 +328,9 @@ public class UserService {
                 movie.getId(),
                 movie.getTitle(),
                 movie.getDescription(),
-                movie.getGenre(),
+                movie.getGenres().stream()
+                        .map(g -> new GenreDto(g.getId(), g.getName()))
+                        .toList(),
                 movie.getReleaseYear(),
                 movie.getCasting(),
                 movie.getPosterURL(),

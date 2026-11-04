@@ -10,7 +10,7 @@ public record MovieDto(
                 @JsonView(SummaryView.class) Long id,
                 @JsonView(SummaryView.class) String title,
                 @JsonView(DetailView.class) String description,
-                @JsonView(DetailView.class) String genre,
+                @JsonView(DetailView.class) List<GenreDto> genres,
                 @JsonView(DetailView.class) int releaseYear,
                 @JsonView({ DetailView.class, CastingView.class }) List<CastMember> casting,
                 @JsonView(SummaryView.class) String posterURL,

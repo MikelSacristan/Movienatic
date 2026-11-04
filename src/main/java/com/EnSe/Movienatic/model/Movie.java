@@ -1,7 +1,9 @@
 package com.EnSe.Movienatic.model;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.CollectionTable;
@@ -12,6 +14,8 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OrderColumn;
 import jakarta.persistence.Table;
@@ -27,7 +31,6 @@ import lombok.Setter;
 @Entity
 @Table(name = "movies", indexes = {
         @jakarta.persistence.Index(name = "idx_title", columnList = "title"),
-        @jakarta.persistence.Index(name = "idx_genre", columnList = "genre"),
         @jakarta.persistence.Index(name = "idx_release_year", columnList = "releaseYear")
 })
 public class Movie {
@@ -42,8 +45,13 @@ public class Movie {
     @Column(nullable = false, length = 2000)
     private String description;
 
-    @Column(nullable = false, length = 500)
-    private String genre;
+    @ManyToMany
+    @JoinTable(
+            name = "movie_genres",
+            joinColumns = @JoinColumn(name = "movie_id"),
+            inverseJoinColumns = @JoinColumn(name = "genre_id")
+    )
+    private Set<Genre> genres = new HashSet<>();
 
     @Column(nullable = false)
     private int releaseYear;
