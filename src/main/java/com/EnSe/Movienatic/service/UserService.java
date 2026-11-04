@@ -128,6 +128,7 @@ public class UserService {
                 .toList();
     }
 
+
     // Siguiendo
     public List<UserDetailsDto> getFollowing(Long userId) {
         User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));

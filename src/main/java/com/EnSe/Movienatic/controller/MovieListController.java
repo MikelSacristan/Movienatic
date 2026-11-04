@@ -65,19 +65,19 @@ public class MovieListController {
     }
 
     // Listas creadas por el usuario (GET, POST, DELETE)
-    @GetMapping("/{listId}")
+    @GetMapping("/lists/{listId}")
     public ResponseEntity<?> getListById(@PathVariable("userId") Long userId,
         @PathVariable("listId") Long listId) {
         return ResponseEntity.ok(userService.getListById(userId,listId));
     }
 
-    @PostMapping("/{listId}")
+    @PostMapping("/lists/{listId}")
     public ResponseEntity<?> addList(@PathVariable("userId") Long userId,
             @PathVariable("listId") Long listId) {
         return ResponseEntity.ok().body("Lista de películas creada correctamente");
     }
 
-    @DeleteMapping("/{listId}")
+    @DeleteMapping("/lists/{listId}")
     public ResponseEntity<?> removeList(@PathVariable("userId") Long userId,
             @PathVariable("listId") Long listId) {
         return ResponseEntity.ok().body("Lista de películas borrada correctamente");
