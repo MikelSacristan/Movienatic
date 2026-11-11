@@ -12,7 +12,7 @@ import com.EnSe.Movienatic.dto.MovieListDto;
 import com.EnSe.Movienatic.dto.ReviewDto;
 import com.EnSe.Movienatic.dto.UpdateReviewRequest;
 import com.EnSe.Movienatic.dto.UserDetailDto;
-import com.EnSe.Movienatic.dto.UserDetailsDto;
+import com.EnSe.Movienatic.dto.UserBasicDetailsDto;
 import com.EnSe.Movienatic.model.User;
 import com.EnSe.Movienatic.model.Movie;
 import com.EnSe.Movienatic.model.MovieList;
@@ -39,7 +39,8 @@ public class UserService {
     private final MovieListRepository movieListRepository;
 
     public UserService(UserRepository userRepository, MovieRepository movieRepository,
-            ReviewRepository reviewRepository, MovieListRepository movieListRepository,ReviewLikeRepository reviewLikeRepository) {
+            ReviewRepository reviewRepository, MovieListRepository movieListRepository,
+            ReviewLikeRepository reviewLikeRepository) {
         this.userRepository = userRepository;
         this.movieRepository = movieRepository;
         this.reviewRepository = reviewRepository;
@@ -50,8 +51,8 @@ public class UserService {
     // Devuelve un bloque de usuarios paginado (por ejemplo 20 por página) ya en
     // DTO, con el total y los metadatos de paginación de la Page
     @Transactional(readOnly = true)
-    public Page<UserDetailsDto> getUsers(Pageable pageable) {
-        return this.userRepository.findAll(pageable).map(this::toUserDetailsDto);
+    public Page<UserBasicDetailsDto> getUsers(Pageable pageable) {
+        return this.userRepository.findAll(pageable).map(this::toUserBasicDetailsDto);
     }
 
     public User getUserByName(String name) {
@@ -67,6 +68,7 @@ public class UserService {
         User user = getUserById(id);
         return toUserDetailDto(user);
     }
+
     // Películas pendientes
     @Transactional(readOnly = true)
     public List<MovieDto> getPendingMovies(Long userId) {
@@ -104,6 +106,7 @@ public class UserService {
                 .toList();
     }
 
+    @Transactional
     public void addFavourite(Long userId, Long movieId) {
         User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
         Movie movie = movieRepository.findById(movieId).orElseThrow(() -> new MovieNotFoundException(movieId));
@@ -130,7 +133,8 @@ public class UserService {
 
     @Transactional(readOnly = true)
     public List<MovieDto> getListById(Long userId, Long listId) {
-        MovieList movieList = movieListRepository.findByUser_IdAndId(userId,listId).orElseThrow(() -> new ListNotFoundException(listId));
+        MovieList movieList = movieListRepository.findByUser_IdAndId(userId, listId)
+                .orElseThrow(() -> new ListNotFoundException(listId));
         return movieList.getMovies()
                 .stream()
                 .map(this::toMovieDto)
@@ -147,39 +151,44 @@ public class UserService {
         movieListRepository.save(movieList);
         userRepository.save(user);
     }
-    public void removeList(Long userId, Long listId){
+
+    public void removeList(Long userId, Long listId) {
         User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
-        MovieList movieList = movieListRepository.findByUser_IdAndId(userId,listId).orElseThrow(() -> new ListNotFoundException(listId));
+        MovieList movieList = movieListRepository.findByUser_IdAndId(userId, listId)
+                .orElseThrow(() -> new ListNotFoundException(listId));
         if (!user.getMovieLists().contains(movieList))
             throw new ListNotFoundException(listId);
         user.getMovieLists().remove(movieList);
         movieListRepository.delete(movieList);
         userRepository.save(user);
     }
-    public void addMovieToList(Long userId, Long listId, Long movieId){
-        User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
+
+    public void addMovieToList(Long userId, Long listId, Long movieId) {
         Movie movie = movieRepository.findById(movieId).orElseThrow(() -> new MovieNotFoundException(movieId));
-        MovieList movieList = movieListRepository.findByUser_IdAndId(userId,listId).orElseThrow(() -> new ListNotFoundException(listId));
+        MovieList movieList = movieListRepository.findByUser_IdAndId(userId, listId)
+                .orElseThrow(() -> new ListNotFoundException(listId));
         movieList.getMovies().add(movie);
         movieListRepository.save(movieList);
     }
-    public void removeMovieToList(Long userId, Long listId, Long movieId){
-        User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
+
+    public void removeMovieToList(Long userId, Long listId, Long movieId) {
         Movie movie = movieRepository.findById(movieId).orElseThrow(() -> new MovieNotFoundException(movieId));
-        MovieList movieList = movieListRepository.findByUser_IdAndId(userId,listId).orElseThrow(() -> new ListNotFoundException(listId));
+        MovieList movieList = movieListRepository.findByUser_IdAndId(userId, listId)
+                .orElseThrow(() -> new ListNotFoundException(listId));
         movieList.getMovies().remove(movie);
         movieListRepository.save(movieList);
     }
 
     // Siguiendo
-    public List<UserDetailsDto> getFollowing(Long userId) {
+    public List<UserBasicDetailsDto> getFollowing(Long userId) {
         User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
         return user.getFollowing()
                 .stream()
-                .map(this::toUserDetailsDto)
+                .map(this::toUserBasicDetailsDto)
                 .toList();
     }
 
+    @Transactional
     public void followUser(Long userId, Long followUserId) {
         User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
         User userToFollow = userRepository.findById(followUserId)
@@ -198,11 +207,11 @@ public class UserService {
         userRepository.save(user);
     }
 
-    public List<UserDetailsDto> getFollowers(Long userId) {
+    public List<UserBasicDetailsDto> getFollowers(Long userId) {
         User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
         return user.getFollowers()
                 .stream()
-                .map(this::toUserDetailsDto)
+                .map(this::toUserBasicDetailsDto)
                 .toList();
     }
 
@@ -214,9 +223,20 @@ public class UserService {
                 .toList();
     }
 
+    @Transactional
     public void addReview(Long userId, Long movieId, String content, Double rating) {
         User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
         Movie movie = movieRepository.findById(movieId).orElseThrow(() -> new MovieNotFoundException(movieId));
+
+        // Verificar si el usuario ya ha escrito una reseña para esta película, no hacer
+        // update, sino lanzar excepción
+        movie.getReviews().stream()
+                .filter(r -> r.getUser().getId().equals(userId))
+                .findFirst()
+                .ifPresent(r -> {
+                    throw new ReviewAlreadyExistsException(userId, movieId);
+                });
+
         Review review = new Review();
         review.setUser(user);
         review.setMovie(movie);
@@ -342,8 +362,8 @@ public class UserService {
         movie.setNumberOfRatings(movie.getReviews().size());
     }
 
-    private UserDetailsDto toUserDetailsDto(User user) {
-        return new UserDetailsDto(user.getId(),user.getUsername(),user.getPhotoURL());
+    private UserBasicDetailsDto toUserBasicDetailsDto(User user) {
+        return new UserBasicDetailsDto(user.getId(), user.getUsername(), user.getPhotoURL());
     }
 
     private UserDetailDto toUserDetailDto(User user) {
@@ -393,11 +413,10 @@ public class UserService {
                 review.getTimestamp());
     }
 
-    private MovieListDto toMovieListDto(com.EnSe.Movienatic.model.MovieList movieList){
+    private MovieListDto toMovieListDto(com.EnSe.Movienatic.model.MovieList movieList) {
         return new MovieListDto(
-            movieList.getId(),
-            movieList.getName(),
-            movieList.getDescription()
-        );
+                movieList.getId(),
+                movieList.getName(),
+                movieList.getDescription());
     }
 }

@@ -67,9 +67,46 @@ public class GlobalExceptionHandler {
         return error(HttpStatus.BAD_REQUEST, mensaje);
     }
 
+    // 404: película no encontrada
+    @ExceptionHandler(MovieNotFoundException.class)
+    public ResponseEntity<Map<String, Object>> movieNotFound(MovieNotFoundException e) {
+        return error(HttpStatus.NOT_FOUND, e.getMessage());
+    }
+
+    // 404: película pendiente no encontrada para ese usuario
+    @ExceptionHandler(PendingMovieNotFoundException.class)
+    public ResponseEntity<Map<String, Object>> pendingMovieNotFound(PendingMovieNotFoundException e) {
+        return error(HttpStatus.NOT_FOUND, e.getMessage());
+    }
+
+    // 404: película favorita no encontrada para ese usuario
+    @ExceptionHandler(FavoriteMovieNotFoundException.class)
+    public ResponseEntity<Map<String, Object>> favoriteMovieNotFound(FavoriteMovieNotFoundException e) {
+        return error(HttpStatus.NOT_FOUND, e.getMessage());
+    }
+
+    // 404: lista no encontrada
+    @ExceptionHandler(ListNotFoundException.class)
+    public ResponseEntity<Map<String, Object>> listNotFound(ListNotFoundException e) {
+        return error(HttpStatus.NOT_FOUND, e.getMessage());
+    }
+
+    // 403: intenta modificar o borrar una reseña que no es suya
+    @ExceptionHandler(ReviewNotOwnedException.class)
+    public ResponseEntity<Map<String, Object>> reviewNotOwned(ReviewNotOwnedException e) {
+        return error(HttpStatus.FORBIDDEN, e.getMessage());
+    }
+
+    // 404: review que no existe
     @ExceptionHandler(ReviewNotFoundException.class)
     public ResponseEntity<Map<String, Object>> reviewNotFound(ReviewNotFoundException e) {
         return error(HttpStatus.NOT_FOUND, e.getMessage());
+    }
+
+    // 409: review que ya existe
+    @ExceptionHandler(ReviewAlreadyExistsException.class)
+    public ResponseEntity<Map<String, Object>> reviewAlreadyExists(ReviewAlreadyExistsException e) {
+        return error(HttpStatus.CONFLICT, e.getMessage());
     }
 
     // Forma común de respuesta de error

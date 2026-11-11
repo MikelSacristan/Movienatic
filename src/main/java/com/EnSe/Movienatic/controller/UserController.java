@@ -1,7 +1,7 @@
 package com.EnSe.Movienatic.controller;
 
 import com.EnSe.Movienatic.dto.UserDetailDto;
-import com.EnSe.Movienatic.dto.UserDetailsDto;
+import com.EnSe.Movienatic.dto.UserBasicDetailsDto;
 import com.EnSe.Movienatic.service.UserService;
 
 import org.springframework.data.domain.Page;
@@ -30,8 +30,10 @@ public class UserController {
     }
 
     @GetMapping("")
-    // @JsonView(UserDto.PublicView.class)
-    public Page<UserDetailsDto> getUsers(@PageableDefault(size = DEFAULT_PAGE_SIZE) Pageable pageable) {
+    // UserBasicDetailsDto es un DTO que contiene solo los detalles básicos del
+    // usuario, para no exponer información sensible en la lista de usuarios, no se
+    // usa una view a partir de UserDto porque da conflictos con pageable
+    public Page<UserBasicDetailsDto> getUsers(@PageableDefault(size = DEFAULT_PAGE_SIZE) Pageable pageable) {
         return userService.getUsers(pageable);
     }
 

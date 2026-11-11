@@ -2,7 +2,11 @@ package com.EnSe.Movienatic.dto;
 
 import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;
+import lombok.Getter;
+import lombok.Setter;
 
+@Getter
+@Setter
 public class ReviewRequest {
     private Long movieId;
     private String content;
@@ -18,30 +22,6 @@ public class ReviewRequest {
     public ReviewRequest(Long movieId, String content, Double rating) {
         this.movieId = movieId;
         this.content = content;
-        this.rating = rating;
-    }
-
-    public Long getMovieId() {
-        return movieId;
-    }
-
-    public void setMovieId(Long movieId) {
-        this.movieId = movieId;
-    }
-
-    public String getContent() {
-        return content;
-    }
-
-    public void setContent(String content) {
-        this.content = content;
-    }
-
-    public Double getRating() {
-        return rating;
-    }
-
-    public void setRating(Double rating) {
         this.rating = rating;
     }
 }

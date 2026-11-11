@@ -2,6 +2,8 @@ package com.EnSe.Movienatic.controller;
 
 import com.EnSe.Movienatic.dto.LoginDto;
 import com.EnSe.Movienatic.dto.RegisterDto;
+import com.EnSe.Movienatic.security.AuthResponse;
+import com.EnSe.Movienatic.security.RefreshRequest;
 import com.EnSe.Movienatic.service.AuthService;
 
 import jakarta.validation.Valid;
@@ -37,7 +39,17 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@Valid @RequestBody LoginDto loginDto) {
-        authService.login(loginDto);
-        return ResponseEntity.ok().body("Login correcto");
+        AuthResponse authResponse = authService.login(loginDto);
+        return ResponseEntity.ok(Map.of("message",
+                "Login del usuario " + authResponse.username() + " correcto" + " y token JWT generado", "token",
+                authResponse.accessToken(), "refreshToken", authResponse.refreshToken(), "email", authResponse.email(),
+                "username",
+                authResponse.username()));
+    }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<AuthResponse> refresh(@RequestBody RefreshRequest request) {
+        AuthResponse authResponse = authService.refreshAccessToken(request);
+        return ResponseEntity.ok(authResponse);
     }
 }
