@@ -164,7 +164,6 @@ public class UserService {
     }
 
     public void addMovieToList(Long userId, Long listId, Long movieId) {
-        User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
         Movie movie = movieRepository.findById(movieId).orElseThrow(() -> new MovieNotFoundException(movieId));
         MovieList movieList = movieListRepository.findByUser_IdAndId(userId, listId)
                 .orElseThrow(() -> new ListNotFoundException(listId));
@@ -173,7 +172,6 @@ public class UserService {
     }
 
     public void removeMovieToList(Long userId, Long listId, Long movieId) {
-        User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
         Movie movie = movieRepository.findById(movieId).orElseThrow(() -> new MovieNotFoundException(movieId));
         MovieList movieList = movieListRepository.findByUser_IdAndId(userId, listId)
                 .orElseThrow(() -> new ListNotFoundException(listId));
