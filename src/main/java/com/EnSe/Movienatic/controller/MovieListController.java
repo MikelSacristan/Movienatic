@@ -1,8 +1,12 @@
 package com.EnSe.Movienatic.controller;
 
 import com.EnSe.Movienatic.dto.MovieDto;
+import com.EnSe.Movienatic.dto.PendingRequest;
+import com.EnSe.Movienatic.dto.FavouriteRequest;
 import com.EnSe.Movienatic.service.UserService;
 import com.fasterxml.jackson.annotation.JsonView;
+
+import io.swagger.v3.oas.annotations.parameters.RequestBody;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -29,10 +33,10 @@ public class MovieListController {
         return ResponseEntity.ok(userService.getPendingMovies(userId));
     }
 
-    @PostMapping("/pending/{movieId}")
+    @PostMapping("/pending")
     public ResponseEntity<?> addPending(@PathVariable("userId") Long userId,
-            @PathVariable("movieId") Long movieId) {
-        userService.addPending(userId, movieId);
+            @RequestBody PendingRequest movieRequest) {
+        userService.addPending(userId, movieRequest.movieId());
         return ResponseEntity.ok().body("Película añadida a pendientes correctamente");
     }
 
@@ -50,10 +54,10 @@ public class MovieListController {
         return ResponseEntity.ok(userService.getFavourites(userId));
     }
 
-    @PostMapping("/favourites/{movieId}")
+    @PostMapping("/favourites")
     public ResponseEntity<?> addFavourite(@PathVariable("userId") Long userId,
-            @PathVariable("movieId") Long movieId) {
-        userService.addFavourite(userId, movieId);
+            @RequestBody FavouriteRequest movieRequest) {
+        userService.addFavourite(userId, movieRequest.movieId());
         return ResponseEntity.ok().body("Película añadida a favoritas correctamente");
     }
 
@@ -67,8 +71,8 @@ public class MovieListController {
     // Listas creadas por el usuario (GET, POST, DELETE)
     @GetMapping("/{listId}")
     public ResponseEntity<?> getListById(@PathVariable("userId") Long userId,
-        @PathVariable("listId") Long listId) {
-        return ResponseEntity.ok(userService.getListById(userId,listId));
+            @PathVariable("listId") Long listId) {
+        return ResponseEntity.ok(userService.getListById(userId, listId));
     }
 
     @PostMapping("/{listId}")
