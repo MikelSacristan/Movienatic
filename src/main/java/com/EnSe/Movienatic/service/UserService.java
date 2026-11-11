@@ -11,8 +11,7 @@ import com.EnSe.Movienatic.dto.MovieDto;
 import com.EnSe.Movienatic.dto.MovieListDto;
 import com.EnSe.Movienatic.dto.ReviewDto;
 import com.EnSe.Movienatic.dto.UpdateReviewRequest;
-import com.EnSe.Movienatic.dto.UserDetailDto;
-import com.EnSe.Movienatic.dto.UserBasicDetailsDto;
+import com.EnSe.Movienatic.dto.UserDto;
 import com.EnSe.Movienatic.model.User;
 import com.EnSe.Movienatic.model.Movie;
 import com.EnSe.Movienatic.model.MovieList;
@@ -51,8 +50,8 @@ public class UserService {
     // Devuelve un bloque de usuarios paginado (por ejemplo 20 por página) ya en
     // DTO, con el total y los metadatos de paginación de la Page
     @Transactional(readOnly = true)
-    public Page<UserBasicDetailsDto> getUsers(Pageable pageable) {
-        return this.userRepository.findAll(pageable).map(this::toUserBasicDetailsDto);
+    public Page<UserDto> getUsers(Pageable pageable) {
+        return userRepository.findAll(pageable).map(this::toUserDto);
     }
 
     public User getUserByName(String name) {
@@ -64,9 +63,9 @@ public class UserService {
     }
 
     @Transactional(readOnly = true)
-    public UserDetailDto getUserPublicById(Long id) {
+    public UserDto getUserPublicById(Long id) {
         User user = getUserById(id);
-        return toUserDetailDto(user);
+        return toUserDto(user);
     }
 
     // Películas pendientes
@@ -180,11 +179,11 @@ public class UserService {
     }
 
     // Siguiendo
-    public List<UserBasicDetailsDto> getFollowing(Long userId) {
+    public List<UserDto> getFollowing(Long userId) {
         User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
         return user.getFollowing()
                 .stream()
-                .map(this::toUserBasicDetailsDto)
+                .map(this::toUserDto)
                 .toList();
     }
 
@@ -207,11 +206,11 @@ public class UserService {
         userRepository.save(user);
     }
 
-    public List<UserBasicDetailsDto> getFollowers(Long userId) {
+    public List<UserDto> getFollowers(Long userId) {
         User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
         return user.getFollowers()
                 .stream()
-                .map(this::toUserBasicDetailsDto)
+                .map(this::toUserDto)
                 .toList();
     }
 
@@ -362,12 +361,8 @@ public class UserService {
         movie.setNumberOfRatings(movie.getReviews().size());
     }
 
-    private UserBasicDetailsDto toUserBasicDetailsDto(User user) {
-        return new UserBasicDetailsDto(user.getId(), user.getUsername(), user.getPhotoURL());
-    }
-
-    private UserDetailDto toUserDetailDto(User user) {
-        return new UserDetailDto(
+    private UserDto toUserDto(User user){
+         return new UserDto(
                 user.getId(),
                 user.getUsername(),
                 user.getPhotoURL(),

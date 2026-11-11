@@ -1,8 +1,10 @@
 package com.EnSe.Movienatic.controller;
 
-import com.EnSe.Movienatic.dto.UserDetailDto;
-import com.EnSe.Movienatic.dto.UserBasicDetailsDto;
+import com.EnSe.Movienatic.dto.UserDto;
+import com.EnSe.Movienatic.dto.MovieDto;
+import com.EnSe.Movienatic.dto.UserPageResponse;
 import com.EnSe.Movienatic.service.UserService;
+import com.fasterxml.jackson.annotation.JsonView;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -30,15 +32,22 @@ public class UserController {
     }
 
     @GetMapping("")
-    // UserBasicDetailsDto es un DTO que contiene solo los detalles básicos del
-    // usuario, para no exponer información sensible en la lista de usuarios, no se
-    // usa una view a partir de UserDto porque da conflictos con pageable
-    public Page<UserBasicDetailsDto> getUsers(@PageableDefault(size = DEFAULT_PAGE_SIZE) Pageable pageable) {
-        return userService.getUsers(pageable);
+    @JsonView(UserDto.SummaryView.class)
+    public ResponseEntity<UserPageResponse> getUsers(
+            @PageableDefault(size = DEFAULT_PAGE_SIZE) Pageable pageable) {
+        Page<UserDto> page = userService.getUsers(pageable);
+        UserPageResponse response = new UserPageResponse(
+                page.getContent(),
+                page.getTotalPages(),
+                page.getTotalElements(),
+                page.getNumber(),
+                page.getSize());
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/{userId}")
-    public ResponseEntity<UserDetailDto> getUser(@PathVariable("userId") Long userId) {
+    @JsonView(MovieDto.DetailView.class)
+    public ResponseEntity<UserDto> getUser(@PathVariable("userId") Long userId) {
         return ResponseEntity.ok(userService.getUserPublicById(userId));
     }
 
