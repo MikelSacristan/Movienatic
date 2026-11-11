@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/auth")
 public class AuthController {
 
-    private AuthService authService;
+    private final AuthService authService;
 
     public AuthController(AuthService authService) {
         this.authService = authService;
@@ -32,13 +32,12 @@ public class AuthController {
     @PostMapping("/register")
     public ResponseEntity<?> register(@Valid @RequestBody RegisterDto registerDto) {
         authService.registrarUsuario(registerDto);
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(Map.of("message", "Usuario registrado correctamente"));
+        return ResponseEntity.status(HttpStatus.CREATED).body("Usuario registrado correctamente");
     }
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@Valid @RequestBody LoginDto loginDto) {
         authService.login(loginDto);
-        return ResponseEntity.ok(Map.of("message", "Login correcto"));
+        return ResponseEntity.ok().body("Login correcto");
     }
 }

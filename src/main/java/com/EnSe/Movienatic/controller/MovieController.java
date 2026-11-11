@@ -79,12 +79,9 @@ public class MovieController {
         return ResponseEntity.ok(movieDto);
     }
 
-    @GetMapping("/{id}/reviews")
-    public List<ReviewDto> getReviewsByMovieId(@PathVariable Long id) {
-        MovieDto movie = movieService.getMovieById(id);
-        if (movie == null) {
-            throw new MovieNotFoundException(id);
-        }
+    @GetMapping("/{movieId}/reviews")
+    public List<ReviewDto> getReviewsByMovieId(@PathVariable Long movieId) {
+        MovieDto movie = movieService.getMovieById(movieId);
         return movie.reviews();
     }
 }
