@@ -3,16 +3,18 @@ package com.EnSe.Movienatic.controller;
 import com.EnSe.Movienatic.dto.MovieDto;
 import com.EnSe.Movienatic.dto.PendingRequest;
 import com.EnSe.Movienatic.dto.FavouriteRequest;
+import com.EnSe.Movienatic.dto.MovieListRequest;
+import com.EnSe.Movienatic.dto.MovieRequest;
 import com.EnSe.Movienatic.service.UserService;
 import com.fasterxml.jackson.annotation.JsonView;
-
-import io.swagger.v3.oas.annotations.parameters.RequestBody;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -69,27 +71,41 @@ public class MovieListController {
     }
 
     // Listas creadas por el usuario (GET, POST, DELETE)
-    @GetMapping("/{listId}")
+    @GetMapping("/lists")
+    public ResponseEntity<?> getLists(@PathVariable("userId") Long userId) {
+        return ResponseEntity.ok(userService.getLists(userId));
+    }
+
+    @PostMapping("/lists")
+    public ResponseEntity<?> addList(@PathVariable("userId") Long userId, @RequestBody MovieListRequest request) {
+        userService.addList(userId, request.getName(), request.getDescription());
+        return ResponseEntity.ok().body("Lista de películas creada correctamente");
+    }
+
+    @DeleteMapping("/lists/{listId}")
+    public ResponseEntity<?> removeList(@PathVariable("userId") Long userId,
+            @PathVariable("listId") Long listId) {
+        userService.removeList(userId, listId);
+        return ResponseEntity.ok().body("Lista de películas borrada correctamente");
+    }
+
+    @GetMapping("/lists/{listId}")
     public ResponseEntity<?> getListById(@PathVariable("userId") Long userId,
             @PathVariable("listId") Long listId) {
         return ResponseEntity.ok(userService.getListById(userId, listId));
     }
 
-    @PostMapping("/{listId}")
-    public ResponseEntity<?> addList(@PathVariable("userId") Long userId,
-            @PathVariable("listId") Long listId) {
-        return ResponseEntity.ok().body("Lista de películas creada correctamente");
+    @PostMapping("/lists/{listId}")
+    public ResponseEntity<?> addMovieToList(@PathVariable("userId") Long userId, @PathVariable("listId") Long listId,
+            @RequestBody MovieRequest request) {
+        userService.addMovieToList(userId, listId, request.getId());
+        return ResponseEntity.ok().body("Película añadida a lista correctamente");
     }
 
-    @DeleteMapping("/{listId}")
-    public ResponseEntity<?> removeList(@PathVariable("userId") Long userId,
-            @PathVariable("listId") Long listId) {
-        return ResponseEntity.ok().body("Lista de películas borrada correctamente");
-    }
-
-    // Listas (GET)
-    @GetMapping("/lists")
-    public ResponseEntity<?> getLists(@PathVariable("userId") Long userId) {
-        return ResponseEntity.ok(userService.getLists(userId));
+    @PatchMapping("/lists/{listId}")
+    public ResponseEntity<?> removeMovieToList(@PathVariable("userId") Long userId, @PathVariable("listId") Long listId,
+            @RequestBody MovieRequest request) {
+        userService.removeMovieToList(userId, listId, request.getId());
+        return ResponseEntity.ok().body("Película eliminada de la lista correctamente");
     }
 }
