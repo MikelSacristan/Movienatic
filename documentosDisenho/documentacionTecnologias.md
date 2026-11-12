@@ -610,62 +610,104 @@ Movienatic/
 └── src/
     ├── main/
     │   ├── java/com/EnSe/Movienatic/
-    │   │   ├── MovienaticApplication.java   → punto de entrada (@SpringBootApplication)
-    │   │   ├── config/
-    │   │   │   ├── DataInitializer.java     → importa TMDB al arrancar (CommandLineRunner)
-    │   │   │   └── AppConfig.java           → configuraciones de Spring (por definir)
-    │   │   ├── controller/                  → API REST (@RestController)
-    │   │   │   ├── MovieController.java      → GET /movies/{id}
-    │   │   │   └── AuthController.java       → (por completar) /auth
-    │   │   ├── dto/                         → records que mapean el JSON (TMDB) y la salida (MovieDto)
-    │   │   │   ├── TmdbResponse.java
-    │   │   │   ├── TmdbMovieDto.java
-    │   │   │   ├── TmdbGenreResponse.java
-    │   │   │   ├── TmdbGenreDto.java
-    │   │   │   ├── TmdbCreditsResponse.java
-    │   │   │   ├── TmdbCastDto.java
-    │   │   │   ├── MovieDto.java            → salida de la API
-    │   │   │   ├── ReviewDto.java
-    │   │   │   ├── RegisterDto.java         → entrada de /auth/register (@NotBlank, @Email)
-    │   │   │   ├── LoginDto.java            → entrada de /auth/login
-    │   │   │   └── UserDto.java             → datos de usuario (salida)
-    │   │   ├── exception/                   → excepciones propias + gestión centralizada
-    │   │   │   ├── GlobalExceptionHandler.java  → @RestControllerAdvice (todas las respuestas de error)
-    │   │   │   ├── MovieNotFoundException.java  → 404 (ResponseStatusException)
-    │   │   │   ├── UserNotFoundException.java
-    │   │   │   ├── BadCredentialsException.java → 401 en el login
-    │   │   │   ├── DuplicatedMovieException.java
-    │   │   │   └── DuplicatedUserException.java → 409 en el registro
-    │   │   ├── model/                       → entidades JPA (+ tipos embebidos)
-    │   │   │   ├── Movie.java
-    │   │   │   ├── CastMember.java          → @Embeddable (actor + personaje)
-    │   │   │   ├── Review.java
-    │   │   │   ├── User.java
-    │   │   │   └── MovieList.java
-    │   │   ├── repository/                  → interfaces de Spring Data JPA
-    │   │   │   ├── MovieRepository.java     → JpaRepository<Movie, Long>
-    │   │   │   └── UserRepository.java      → JpaRepository<User, Long>
-    │   │   └── service/                     → lógica de negocio (@Service)
-    │   │       ├── TmdbService.java         → cliente HTTP de la API TMDB
-    │   │       ├── MovieImportService.java  → mapea y guarda en BD (sin duplicados)
-    │   │       ├── MovieService.java        → consulta de películas (devuelve DTOs)
-    │   │       └── UserService.java         → lógica de usuarios (por completar)
-    │   └── resources/
-    │       └── application.properties       → configuración (BD, TMDB, Hibernate)
-    ├── test/java/com/EnSe/Movienatic/       → tests (MovienaticApplicationTests)
-    └── ...
+│   │   │   ├── MovienaticApplication.java   → punto de entrada (@SpringBootApplication)
+│   │   │   ├── config/
+│   │   │   │   ├── DataInitializer.java     → importa películas TMDB al arrancar (CommandLineRunner)
+│   │   │   │   ├── DemoDataGenerator.java   → datos de prueba (perfil "demo")
+│   │   │   │   ├── AppConfig.java           → configuraciones de Spring (vacío, por definir)
+│   │   │   │   ├── OpenApiConfig.java       → configuración de Swagger/OpenAPI con Bearer Auth
+│   │   │   │   └── SecurityConfig.java      → configuración de Spring Security (JWT, CORS, roles)
+│   │   │   ├── controller/                  → API REST (@RestController)
+│   │   │   │   ├── AuthController.java       → POST /auth/login, /register, /refresh, /logout
+│   │   │   │   ├── MovieController.java       → GET /movies, /movies/{id}, /detail, /casting, /review
+│   │   │   │   ├── MovieListController.java   → gestión de listas de películas (por completar)
+│   │   │   │   ├── ReviewController.java      → POST/PUT/DELETE /users/{id}/reviews/{reviewId}, like/dislike
+│   │   │   │   └── UserController.java        → GET /users, /users/{id}, /following, /followers, /pending, /favourites
+│   │   │   ├── dto/                         → records que mapean el JSON (TMDB) y la salida (MovieDto)
+│   │   │   │   ├── AuthResponse.java          → token de acceso y refresh tras login/refresh
+│   │   │   │   ├── GenreDto.java              → id y nombre de género
+│   │   │   │   ├── LoginDto.java              → entrada de /auth/login (email, password)
+│   │   │   │   ├── MovieDto.java              → salida de películas con @JsonView (Summary, Detail, Casting, Review)
+│   │   │   │   ├── MovieFilter.java           → filtros de búsqueda (título, género, rating, año)
+│   │   │   │   ├── MoviePageResponse.java   → wrapper paginado para /movies con @JsonView
+│   │   │   │   ├── RegisterDto.java           → entrada de /auth/register (@NotBlank, @Email)
+│   │   │   │   ├── ReviewDto.java             → datos de una reseña
+│   │   │   │   ├── ReviewRequest.java         → entrada para crear/editar reseña
+│   │   │   │   ├── UpdateReviewRequest.java   → entrada para actualizar reseña
+│   │   │   │   ├── FavouriteRequest.java      → entrada para añadir/quitar favorita
+│   │   │   │   ├── FollowRequest.java         → entrada para seguir/dejar de seguir
+│   │   │   │   ├── PendingRequest.java        → entrada para añadir/quitar pendiente
+│   │   │   │   ├── TmdbCastDto.java
+│   │   │   │   ├── TmdbCreditsResponse.java
+│   │   │   │   ├── TmdbGenreDto.java
+│   │   │   │   ├── TmdbGenreResponse.java
+│   │   │   │   ├── TmdbMovieDto.java
+│   │   │   │   ├── TmdbResponse.java
+│   │   │   │   ├── UserBasicDetailsDto.java   → listado público de usuarios (id, username, photoURL)
+│   │   │   │   ├── UserDetailDto.java         → detalle individual de usuario con contadores
+│   │   │   │   └── UserDto.java               → (legacy, ya no se usa en endpoints principales)
+│   │   │   ├── exception/                   → excepciones propias + gestión centralizada
+│   │   │   │   ├── GlobalExceptionHandler.java  → @RestControllerAdvice (todas las respuestas de error)
+│   │   │   │   ├── BadCredentialsException.java → 401 en el login
+│   │   │   │   ├── DuplicatedMovieException.java → 409 en importación
+│   │   │   │   ├── DuplicatedUserException.java → 409 en registro
+│   │   │   │   ├── FavoriteMovieNotFoundException.java → 404
+│   │   │   │   ├── FollowingUserNotFoundException.java → 404
+│   │   │   │   ├── ListNotFoundException.java → 404
+│   │   │   │   ├── MovieNotFoundException.java → 404
+│   │   │   │   ├── PendingMovieNotFoundException.java → 404
+│   │   │   │   ├── ReviewAlreadyExistsException.java → 409 (reseña duplicada)
+│   │   │   │   ├── ReviewNotFoundException.java → 404
+│   │   │   │   ├── ReviewNotOwnedException.java → 403 (no es propietaria)
+│   │   │   │   └── UserNotFoundException.java → 404
+│   │   │   ├── model/                       → entidades JPA (+ tipos embebidos)
+│   │   │   │   ├── CastMember.java          → @Embeddable (actor + personaje)
+│   │   │   │   ├── Genre.java               → entidad género (normalización many-to-many)
+│   │   │   │   ├── Movie.java
+│   │   │   │   ├── MovieList.java
+│   │   │   │   ├── RefreshToken.java        → entidad para refresh tokens (rotación, revocación)
+│   │   │   │   ├── Review.java
+│   │   │   │   ├── ReviewLike.java
+│   │   │   │   └── User.java
+│   │   │   ├── repository/                  → interfaces de Spring Data JPA
+│   │   │   │   ├── GenreRepository.java     → JpaRepository<Genre, Long>
+│   │   │   │   ├── MovieRepository.java     → JpaRepository<Movie, Long> + findByGenreId/Name
+│   │   │   │   ├── RefreshTokenRepository.java → JpaRepository<RefreshToken, Long> + findByToken
+│   │   │   │   ├── ReviewLikeRepository.java
+│   │   │   │   ├── ReviewRepository.java
+│   │   │   │   └── UserRepository.java      → JpaRepository<User, Long> + findByUsername/Email
+│   │   │   ├── security/                    → seguridad JWT
+│   │   │   │   ├── config/
+│   │   │   │   │   └── SecurityConfig.java  → filter chain, CORS, permitAll, estado stateless
+│   │   │   │   ├── filter/
+│   │   │   │   │   └── JwtAuthenticationFilter.java → lee header Authorization, valida JWT
+│   │   │   │   └── service/
+│   │   │   │       ├── JwtService.java        → genera, firma y valida JWT
+│   │   │   │       └── MyUserDetailsService.java → implementa UserDetailsService (busca por email)
+│   │   │   └── service/                     → lógica de negocio (@Service)
+│   │   │       ├── MovieImportService.java  → importa películas de TMDB (sin duplicados)
+│   │   │       ├── MovieService.java        → consulta de películas (devuelve DTOs, filtros)
+│   │   │       ├── TmdbService.java         → cliente HTTP de la API TMDB (RestClient)
+│   │   │       └── UserService.java         → lógica de usuarios (reviews, favoritos, pendientes, follows)
+│   │   └── resources/
+│   │       └── application.properties       → configuración (BD, TMDB, JWT, Hibernate)
+│   ├── test/java/com/EnSe/Movienatic/       → tests (MovienaticApplicationTests)
+│   └── ...
 ```
 
 ### Qué significa cada paquete
 
-- **`config`**: beans de configuración / lógica de arranque (`DataInitializer`, `AppConfig`).
-- **`controller`**: expone la API REST (convierte HTTP ↔ DTO). No habla con la BD directamente.
-- **`dto`** (Data Transfer Object): objetos "de transporte". Los `Tmdb*` reflejan el JSON externo; los `Movie*`/`Review*` son la salida para el cliente.
-- **`model`**: entidades con `@Entity` que representan las tablas (`movies`, `reviews`, `users`, `movie_lists`).
-- **`repository`**: interfaces de Spring Data JPA; puente entre la app y la BD.
-- **`service`**: lógica de negocio. Se inyectan los repositorios y otros servicios; transforma entidad ↔ DTO.
-- **`exception`**: excepciones propias para errores concretos (película no encontrada, usuario duplicado...) y el `GlobalExceptionHandler` que las traduce a respuestas HTTP con formato uniforme.
-- **`resources/application.properties`**: configuración central.
+| Ubicación | ¿Qué hace? |
+|-----------|------------|
+| **`config`** | beans de configuración / lógica de arranque (`DataInitializer`, `DemoDataGenerator`, `AppConfig`, `OpenApiConfig`, `SecurityConfig`). |
+| **`controller`** | expone la API REST (convierte HTTP ↔ DTO). No habla con la BD directamente. |
+| **`dto`** (Data Transfer Object): objetos de transporte. Los `Tmdb*` reflejan el JSON externo; los `Movie*`/`Review*`/`User*` son la salida para el cliente; los `*Request` son la entrada. |
+| **`model`**: entidades con `@Entity` que representan las tablas (`movies`, `reviews`, `users`, `genres`, `movie_genres`, `refresh_tokens`, `movie_lists`, etc.). |
+| **`repository`**: interfaces de Spring Data JPA; puente entre la app y la BD. |
+| **`security`**: todo lo relacionado con autenticación y autorización JWT (`SecurityConfig`, `JwtAuthenticationFilter`, `JwtService`, `MyUserDetailsService`). |
+| **`service`**: lógica de negocio. Se inyectan los repositorios y otros servicios; transforma entidad ↔ DTO. |
+| **`exception`**: excepciones propias para errores concretos y el `GlobalExceptionHandler` que las traduce a respuestas HTTP con formato uniforme. |
+| **`resources/application.properties`**: configuración central. |
 
 ### Separación en capas (flujo de una petición)
 
@@ -716,10 +758,704 @@ Pasos clave:
 
 ---
 
-## 16. Comandos útiles
+## 16. Seguridad: autenticación y autorización con JWT
+
+El proyecto usa **Spring Security** + **JSON Web Tokens (JWT)** para proteger los endpoints de la API REST. Spring Security no guarda sesiones en el servidor (*stateless*); el cliente envía un token JWT en cada petición y el backend valida su firma.
+
+### 16.1 Dependencias necesarias
+
+En `build.gradle`:
+
+```gradle
+implementation 'org.springframework.boot:spring-boot-starter-security'
+
+// JWT
+implementation 'io.jsonwebtoken:jjwt-api:0.12.3'
+runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.3'
+runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.3'
+```
+
+### 16.2 Propiedades de configuración
+
+En `application.properties`:
+
+```properties
+# Clave secreta para firmar los JWT (debe ser larga y secreta; en producción usa variable de entorno)
+jwt.secret=TuClaveSecretaMuyLargaYSeguraParaFirmarJWT1234567890
+
+# Tiempo de vida del access token en milisegundos (por defecto 15 minutos)
+jwt.access-expiration=900000
+
+# Tiempo de vida del refresh token en milisegundos (por defecto 7 días)
+jwt.refresh-expiration=604800000
+```
+
+> ⚠️ Nunca subas `jwt.secret` al repositorio de Git. Úsala como variable de entorno en producción (`@Value("${jwt.secret}")` lee también variables de entorno si se define así).
+
+### 16.3 `MyUserDetailsService` (puente entre tu entidad `User` y Spring Security)
+
+Spring Security necesita un objeto `UserDetails` (su propia interfaz) para autenticar. El proyecto no usa la clase `User` de Spring, sino la entidad propia del dominio:
+
+```java
+package com.EnSe.Movienatic.security.service;
+
+import com.EnSe.Movienatic.model.User;              // TU entidad de BD
+import com.EnSe.Movienatic.repository.UserRepository; // TU repositorio JPA
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.stereotype.Service;
+
+@Service
+public class MyUserDetailsService implements UserDetailsService {
+
+    private final UserRepository userRepository;
+
+    public MyUserDetailsService(UserRepository userRepository) {
+        this.userRepository = userRepository;
+    }
+
+    @Override
+    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
+        // Spring pasa el email como "username"; se busca en la entidad propia
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("Usuario no encontrado: " + email));
+
+        return org.springframework.security.core.userdetails.User.builder()
+                .username(user.getEmail())      // el "username" de Spring será el email
+                .password(user.getPassword())   // hash BCrypt
+                .roles("USER")                  // rol por defecto
+                .build();
+    }
+}
+```
+
+- `loadUserByUsername` se invoca al hacer **login** y también en **cada petición con JWT** (desde `JwtAuthenticationFilter`).
+- El campo `password` de tu entidad `User` debe guardar el **hash BCrypt**, nunca texto plano.
+
+### 16.4 `JwtService` (firmar y validar tokens)
+
+```java
+package com.EnSe.Movienatic.security.service;
+
+import io.jsonwebtoken.*;
+import io.jsonwebtoken.io.Decoders;
+import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.stereotype.Service;
+
+import javax.crypto.SecretKey;
+import java.util.Date;
+import java.util.function.Function;
+
+@Service
+public class JwtService {
+
+    @Value("${jwt.secret}")
+    private String secretKey;
+
+    @Value("${jwt.access-expiration:900000}")
+    private long accessExpiration;
+
+    private SecretKey getSignInKey() {
+        byte[] keyBytes = Decoders.BASE64.decode(secretKey);
+        return Keys.hmacShaKeyFor(keyBytes);
+    }
+
+    public String generateAccessToken(UserDetails userDetails) {
+        return Jwts.builder()
+                .subject(userDetails.getUsername()) // email
+                .issuedAt(new Date(System.currentTimeMillis()))
+                .expiration(new Date(System.currentTimeMillis() + accessExpiration))
+                .signWith(getSignInKey(), SignatureAlgorithm.HS256)
+                .compact();
+    }
+
+    public String extractUsername(String token) {
+        return extractClaim(token, Claims::getSubject);
+    }
+
+    public boolean isTokenValid(String token, UserDetails userDetails) {
+        final String username = extractUsername(token);
+        return username.equals(userDetails.getUsername()) && !isTokenExpired(token);
+    }
+
+    private boolean isTokenExpired(String token) {
+        return extractExpiration(token).before(new Date());
+    }
+
+    private Date extractExpiration(String token) {
+        return extractClaim(token, Claims::getExpiration);
+    }
+
+    private Claims extractAllClaims(String token) {
+        return Jwts.parser()
+                .verifyWith(getSignInKey())
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
+    }
+
+    public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
+        final Claims claims = extractAllClaims(token);
+        return claimsResolver.apply(claims);
+    }
+}
+```
+
+> Advertencia de IntelliJ: `signWith(Key, SignatureAlgorithm)` está deprecada desde JJWT 0.12.0. Sigue funcionando; en versiones futuras migra a `SigningAlgorithm`.
+
+### 16.5 `JwtAuthenticationFilter` (filtro que lee el token en cada petición)
+
+Este filtro se ejecuta en **todas** las peticiones HTTP. Si hay un header `Authorization: Bearer <token>`, lo valida y establece al usuario en el contexto de seguridad:
+
+```java
+package com.EnSe.Movienatic.security.filter;
+
+import com.EnSe.Movienatic.security.service.JwtService;
+import com.EnSe.Movienatic.security.service.MyUserDetailsService;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
+import org.springframework.stereotype.Component;
+import org.springframework.web.filter.OncePerRequestFilter;
+
+import java.io.IOException;
+
+@Component
+public class JwtAuthenticationFilter extends OncePerRequestFilter {
+
+    private final JwtService jwtService;
+    private final MyUserDetailsService userDetailsService;
+
+    public JwtAuthenticationFilter(JwtService jwtService,
+                                   MyUserDetailsService userDetailsService) {
+        this.jwtService = jwtService;
+        this.userDetailsService = userDetailsService;
+    }
+
+    @Override
+    protected void doFilterInternal(HttpServletRequest request,
+                                    HttpServletResponse response,
+                                    FilterChain filterChain) throws ServletException, IOException {
+
+        final String authHeader = request.getHeader("Authorization");
+        final String jwt;
+        final String username;
+
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
+        jwt = authHeader.substring(7);
+        username = jwtService.extractUsername(jwt);
+
+        if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+            UserDetails userDetails = this.userDetailsService.loadUserByUsername(username);
+
+            if (jwtService.isTokenValid(jwt, userDetails)) {
+                UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+                        userDetails,
+                        null,
+                        userDetails.getAuthorities()
+                );
+                authToken.setDetails(
+                        new WebAuthenticationDetailsSource().buildDetails(request)
+                );
+                SecurityContextHolder.getContext().setAuthentication(authToken);
+            }
+        }
+        filterChain.doFilter(request, response);
+    }
+}
+```
+
+### 16.6 `SecurityConfig` (configuración de Spring Security)
+
+```java
+package com.EnSe.Movienatic.security.config;
+
+import com.EnSe.Movienatic.security.filter.JwtAuthenticationFilter;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.List;
+
+@Configuration
+@EnableWebSecurity
+public class SecurityConfig {
+
+    private final JwtAuthenticationFilter jwtAuthFilter;
+
+    public SecurityConfig(JwtAuthenticationFilter jwtAuthFilter) {
+        this.jwtAuthFilter = jwtAuthFilter;
+    }
+
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        http
+            .csrf(csrf -> csrf.disable())
+            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            .authorizeHttpRequests(auth -> auth
+                // Rutas públicas (sin token)
+                .requestMatchers(
+                    "/auth/**",            // login, register, refresh, logout
+                    "/movies", "/movies/**", // catálogo público
+                    "/v3/api-docs/**",
+                    "/swagger-ui/**",
+                    "/swagger-ui.html",
+                    "/webjars/**"
+                ).permitAll()
+                // Todo lo demás requiere token válido
+                .anyRequest().authenticated()
+            )
+            .addFilterBefore(jwtAuthFilter, org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter.class);
+        return http.build();
+    }
+
+    @Bean
+    public AuthenticationManager authenticationManager(
+            AuthenticationConfiguration authenticationConfiguration) throws Exception {
+        return authenticationConfiguration.getAuthenticationManager();
+    }
+
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOrigins(List.of("http://localhost:5173")); // tu frontend
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(List.of("*"));
+        configuration.setAllowCredentials(true);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
+    }
+
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
+}
+```
+
+Puntos clave:
+
+- **`STATELESS`**: no se usa `HttpSession` del servidor; el estado viaja en el JWT.
+- **`permitAll()`** en `/auth/**`, `/movies/**` y Swagger para que sean accesibles sin token.
+- **`anyRequest().authenticated()`**: todo lo demás exige token válido.
+- El filtro JWT se inserta **antes** de `UsernamePasswordAuthenticationFilter`.
+
+### 16.7 DTOs de autenticación
+
+```java
+package com.EnSe.Movienatic.dto;
+
+public record LoginDto(String email, String password) { }
+
+public record AuthResponse(String accessToken, String refreshToken, String type, String email) {
+    public AuthResponse(String accessToken, String email) {
+        this(accessToken, null, "Bearer", email);
+    }
+
+    public AuthResponse(String accessToken, String refreshToken, String email) {
+        this(accessToken, refreshToken, "Bearer", email);
+    }
+}
+
+public record RefreshRequest(String refreshToken) { }
+```
+
+### 16.8 `AuthController` (endpoints de autenticación)
+
+```java
+package com.EnSe.Movienatic.controller;
+
+import com.EnSe.Movienatic.dto.AuthResponse;
+import com.EnSe.Movienatic.dto.LoginDto;
+import com.EnSe.Movienatic.dto.RefreshRequest;
+import com.EnSe.Movienatic.model.User;
+import com.EnSe.Movienatic.repository.RefreshTokenRepository;
+import com.EnSe.Movienatic.repository.UserRepository;
+import com.EnSe.Movienatic.security.service.JwtService;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping("/auth")
+public class AuthController {
+
+    private final AuthenticationManager authenticationManager;
+    private final JwtService jwtService;
+    private final UserRepository userRepository;
+    private final RefreshTokenRepository refreshTokenRepository;
+
+    public AuthController(AuthenticationManager authenticationManager,
+                          JwtService jwtService,
+                          UserRepository userRepository,
+                          RefreshTokenRepository refreshTokenRepository) {
+        this.authenticationManager = authenticationManager;
+        this.jwtService = jwtService;
+        this.userRepository = userRepository;
+        this.refreshTokenRepository = refreshTokenRepository;
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<AuthResponse> login(@RequestBody LoginDto loginDto) {
+        // 1. Valida email + contraseña (usa MyUserDetailsService + BCrypt internamente)
+        authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(
+                        loginDto.getEmail(),
+                        loginDto.getPassword()
+                )
+        );
+
+        // 2. Recupera tu entidad User de la base de datos
+        User user = userRepository.findByEmail(loginDto.getEmail())
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+
+        // 3. Genera el JWT
+        String token = jwtService.generateAccessToken(
+                org.springframework.security.core.userdetails.User.builder()
+                        .username(user.getEmail())
+                        .password(user.getPassword())
+                        .roles("USER")
+                        .build()
+        );
+
+        // 4. Crea y guarda el refresh token en BD (para rotación y revocación)
+        String refreshToken = UUID.randomUUID().toString();
+        RefreshToken rt = new RefreshToken();
+        rt.setToken(refreshToken);
+        rt.setUser(user);
+        rt.setExpiryDate(new Date(System.currentTimeMillis() + 604800000L)); // 7 días
+        rt.setRevoked(false);
+        refreshTokenRepository.save(rt);
+
+        return ResponseEntity.ok(new AuthResponse(token, refreshToken, user.getEmail()));
+    }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<AuthResponse> refresh(@RequestBody RefreshRequest request) {
+        RefreshToken rt = refreshTokenRepository.findByToken(request.getRefreshToken())
+                .orElseThrow(() -> new RuntimeException("Refresh token no válido"));
+
+        if (rt.isRevoked() || rt.getExpiryDate().before(new Date())) {
+            throw new RuntimeException("Refresh token expirado o revocado");
+        }
+
+        User user = rt.getUser();
+
+        // Generar nuevo access token
+        String newAccessToken = jwtService.generateAccessToken(
+                org.springframework.security.core.userdetails.User.builder()
+                        .username(user.getEmail())
+                        .password(user.getPassword())
+                        .roles("USER")
+                        .build()
+        );
+
+        // Rotar refresh token
+        rt.setRevoked(true);
+        refreshTokenRepository.save(rt);
+
+        String newRefreshToken = UUID.randomUUID().toString();
+        RefreshToken newRt = new RefreshToken();
+        newRt.setToken(newRefreshToken);
+        newRt.setUser(user);
+        newRt.setExpiryDate(new Date(System.currentTimeMillis() + 604800000L));
+        newRt.setRevoked(false);
+        refreshTokenRepository.save(newRt);
+
+        return ResponseEntity.ok(new AuthResponse(newAccessToken, newRefreshToken, user.getEmail()));
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout(@RequestBody RefreshRequest request) {
+        refreshTokenRepository.findByToken(request.getRefreshToken())
+                .ifPresent(rt -> {
+                    rt.setRevoked(true);
+                    refreshTokenRepository.save(rt);
+                });
+        return ResponseEntity.ok("Sesión cerrada");
+    }
+}
+```
+
+### 16.9 Entidad `RefreshToken` y repositorio
+
+```java
+package com.EnSe.Movienatic.model;
+
+import java.util.Date;
+import jakarta.persistence.*;
+import lombok.*;
+
+@Entity
+@Table(name = "refresh_tokens")
+@Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
+public class RefreshToken {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(nullable = false, unique = true, length = 500)
+    private String token;
+
+    @Column(nullable = false)
+    private String tokenType;
+
+    @Column(nullable = false)
+    private boolean revoked;
+
+    @Column(nullable = false)
+    private boolean expired;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
+
+    @Column(nullable = false)
+    private Date expiresAt;
+}
+```
+
+```java
+package com.EnSe.Movienatic.repository;
+
+import com.EnSe.Movienatic.model.RefreshToken;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import java.util.Optional;
+
+public interface RefreshTokenRepository extends JpaRepository<RefreshToken, Long> {
+    Optional<RefreshToken> findByToken(String token);
+}
+```
+
+### 16.10 Flujo de autenticación completo
+
+```
+1. Frontend → POST /auth/login  { email, password }
+2. Backend  → authenticationManager.authenticate()  → llama a MyUserDetailsService.loadUserByUsername(email)
+3. Backend  → compara contraseña BCrypt
+4. Backend  → genera accessToken (JWT, 15 min) y refreshToken (BD, 7 días)
+5. Frontend → guarda accessToken (memoria/localStorage) y refreshToken
+6. Frontend → en cada petición protegida envía: Authorization: Bearer <accessToken>
+7. Backend  → JwtAuthenticationFilter valida el token y pone al usuario en SecurityContext
+8. Si accessToken expira (401/403) → frontend llama a POST /auth/refresh con refreshToken
+9. Backend  → valida refreshToken en BD, rota (invalida el viejo, crea uno nuevo) y devuelve accessToken nuevo
+```
+
+### 16.11 Mapa de excepciones de seguridad
+
+| Situación | Código HTTP | Origen |
+|-----------|-------------|--------|
+| Token expirado | 403 / 401 | `JwtAuthenticationFilter` / `ExpiredJwtException` |
+| Token malformado / sin firma válida | 403 / 401 | `JwtAuthenticationFilter` |
+| Credenciales incorrectas en login | 401 | `BadCredentialsException` → `GlobalExceptionHandler` |
+| Refresh token expirado o revocado | 401 | `AuthController` → `RuntimeException` |
+| Usuario no encontrado | 404 | `UserNotFoundException` → `GlobalExceptionHandler` |
+
+> **Nota importante:** Si el access token expira, el filtro JWT lanza `ExpiredJwtException` **antes** de llegar a tu controlador. Ese error **no** lo captura `GlobalExceptionHandler`, porque ocurre en el filtro de Spring Security. Para evitar que el usuario tenga que hacer login manualmente, el frontend debe interceptar el 401/403 y llamar a `/auth/refresh`.
+
+### 16.12 Cómo probar la seguridad
+
+#### Con `curl`
+
+```bash
+# 1. Registro (público)
+curl -X POST http://localhost:8080/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"username":"ana","email":"ana@mail.com","password":"123456"}'
+
+# 2. Login (público) → devuelve accessToken y refreshToken
+curl -X POST http://localhost:8080/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"ana@mail.com","password":"123456"}'
+
+# 3. Endpoint protegido (requiere token)
+curl -X GET http://localhost:8080/users/1/pending \
+  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+
+# 4. Refresh (cuando el access token expire)
+curl -X POST http://localhost:8080/auth/refresh \
+  -H "Content-Type: application/json" \
+  -d '{"refreshToken":"uuid-del-refresh-token"}'
+
+# 5. Logout (invalida el refresh token)
+curl -X POST http://localhost:8080/auth/logout \
+  -H "Content-Type: application/json" \
+  -d '{"refreshToken":"uuid-del-refresh-token"}'
+```
+
+#### Con Swagger UI
+
+1. Abre `http://localhost:8080/swagger-ui/index.html`.
+2. Ejecuta `POST /auth/login` para obtener el token.
+3. Haz clic en **Authorize** (candado 🔒), pega el token con formato `Bearer <token>` y pulsa **Authorize**.
+4. Ahora puedes ejecutar cualquier endpoint protegido (`GET /users/{id}/pending`, etc.) y Swagger enviará el token automáticamente.
+
+---
+
+## 18. Comandos útiles
 
 ```bash
 ./gradlew bootRun                                   # ejecutar
 ./gradlew compileJava                               # compilar
 curl http://localhost:8080/movies/1                 # probar endpoint
 ```
+
+
+
+## 17. Filtros de búsqueda de películas (`Specification`)
+
+El endpoint `GET /movies` permite filtrar películas de forma dinámica y paginada usando **Spring Data JPA `Specification`**. Esto evita crear un método de repositorio por cada combinación de filtros posibles.
+
+### 17.1 DTO de filtros (`MovieFilter`)
+
+Se define un record que agrupa los criterios opcionales de búsqueda:
+
+```java
+package com.EnSe.Movienatic.dto;
+
+import java.util.List;
+
+public record MovieFilter(
+        String title,           // contiene, ignorando mayúsculas
+        List<Long> genreIds,    // películas que tengan al menos uno de estos géneros
+        Double minRating,       // average_rating >= valor
+        Integer releaseYear     // año exacto de estreno
+) {
+}
+```
+
+Spring MVC lo enlaza automáticamente con los parámetros de consulta (`?title=star&genreIds=1&genreIds=2&minRating=7.0&releaseYear=2020`).
+
+### 17.2 `MovieSpecification`
+
+Es la clase que construye los `Predicate` de JPA Criteria API según qué filtros vayan rellenados:
+
+```java
+package com.EnSe.Movienatic.specification;
+
+import com.EnSe.Movienatic.dto.MovieFilter;
+import com.EnSe.Movienatic.model.Movie;
+import jakarta.persistence.criteria.Predicate;
+import org.springframework.data.jpa.domain.Specification;
+
+import java.util.ArrayList;
+import java.util.List;
+
+public class MovieSpecification {
+
+    public static Specification<Movie> withFilters(MovieFilter filter) {
+        return (root, query, criteriaBuilder) -> {
+            List<Predicate> predicates = new ArrayList<>();
+
+            if (filter.title() != null && !filter.title().isBlank()) {
+                predicates.add(
+                    criteriaBuilder.like(
+                        criteriaBuilder.lower(root.get("title")),
+                        "%" + filter.title().toLowerCase() + "%"
+                    )
+                );
+            }
+
+            if (filter.genreIds() != null && !filter.genreIds().isEmpty()) {
+                // Se une a la tabla intermedia movie_genres (relación many-to-many)
+                predicates.add(root.join("genres").get("id").in(filter.genreIds()));
+            }
+
+            if (filter.minRating() != null) {
+                predicates.add(
+                    criteriaBuilder.greaterThanOrEqualTo(root.get("averageRating"), filter.minRating())
+                );
+            }
+
+            if (filter.releaseYear() != null) {
+                predicates.add(
+                    criteriaBuilder.equal(root.get("releaseYear"), filter.releaseYear())
+                );
+            }
+
+            query.distinct(true); // necesario por el JOIN de géneros para evitar duplicados
+            return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
+        };
+    }
+}
+```
+
+- `query.distinct(true)` es obligatorio porque el `JOIN` con la tabla de géneros multiplica filas si una película tiene varios géneros.
+- Los filtros son **opcionales**: si no se pasa ningún parámetro, se devuelven todas las películas paginadas sin filtro.
+
+### 17.3 Servicio (`MovieService`)
+
+El servicio recibe el `MovieFilter` y lo envuelve en una `Specification` antes de consultar paginada:
+
+```java
+@Transactional(readOnly = true)
+public Page<MovieDto> getMovies(MovieFilter filter, Pageable pageable) {
+    Specification<Movie> spec = MovieSpecification.withFilters(filter);
+    return movieRepository.findAll(spec, pageable).map(this::toMovieDto);
+}
+```
+
+`movieRepository` extiende `JpaSpecificationExecutor<Movie>` además de `JpaRepository<Movie, Long>`, por lo que dispone del método `findAll(Specification, Pageable)`.
+
+### 17.4 Controlador (`MovieController`)
+
+El controlador recibe los parámetros de query automáticamente mapeados a `MovieFilter` y los pasa al servicio:
+
+```java
+@GetMapping("")
+@JsonView(MovieDto.SummaryView.class)
+public ResponseEntity<MoviePageResponse> getMovies(
+        @PageableDefault(size = DEFAULT_PAGE_SIZE) Pageable pageable,
+        MovieFilter filter) {
+    Page<MovieDto> page = movieService.getMovies(filter, pageable);
+    MoviePageResponse response = new MoviePageResponse(
+            page.getContent(),
+            page.getTotalPages(),
+            page.getTotalElements(),
+            page.getNumber(),
+            page.getSize());
+    return ResponseEntity.ok(response);
+}
+```
+
+### 17.5 Ejemplos de uso
+
+| URL | Qué devuelve |
+|-----|--------------|
+| `GET /movies?page=0&size=20` | Todas las películas paginadas (sin filtro) |
+| `GET /movies?title=star&page=0&size=10` | Películas cuyo título contenga "star" (case-insensitive) |
+| `GET /movies?genreIds=1&genreIds=2&page=0&size=10` | Películas de Acción **o** Ciencia ficción |
+| `GET /movies?minRating=7.0&page=0&size=10` | Películas con calificación >= 7.0 |
+| `GET /movies?releaseYear=2020&page=0&size=10` | Películas estrenadas en 2020 |
+| `GET /movies?title=matrix&minRating=8.0&releaseYear=1999` | Combinación de varios filtros |
+
+### 17.6 Nota sobre `Page` + `@JsonView`
+
+Debido a que `PageImpl` (el wrapper de paginación de Spring Data) y `@JsonView` no siempre aplican el filtro de vista de forma fiable sobre el wrapper, el endpoint envuelve la respuesta en `MoviePageResponse`, un DTO propio con los campos `@JsonView(SummaryView.class)` anotados uno a uno (`content`, `totalPages`, `totalElements`, `number`, `size`).
+

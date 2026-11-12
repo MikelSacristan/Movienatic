@@ -3,8 +3,10 @@ package com.EnSe.Movienatic.config;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -16,6 +18,8 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import com.EnSe.Movienatic.security.JwtAuthenticationFilter;
 import com.EnSe.Movienatic.security.MyUserDetailsService;
+
+import jakarta.servlet.http.HttpServletResponse;
 
 import java.util.List;
 
@@ -47,6 +51,18 @@ public class SecurityConfig {
                                 "/swagger-ui.html")
                         .permitAll()
                         .anyRequest().authenticated())
+                .headers(headers -> headers
+                        .defaultsDisabled() // Elimina X-XSS-Protection: 0, Pragma, Expires, etc.
+                        .contentTypeOptions(Customizer.withDefaults()) // Mantiene X-Content-Type-Options: nosniff
+                        .frameOptions(HeadersConfigurer.FrameOptionsConfig::deny) // Mantiene X-Frame-Options: DENY
+                )
+                .exceptionHandling(exception -> exception // cuando el token es inválido o ha expirado, devolver 401 en
+                                                          // vez de 403
+                        .authenticationEntryPoint((request, response, authException) -> {
+                            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED); // 401
+                            response.setHeader("WWW-Authenticate",
+                                    "Bearer error=\"invalid_token\", error_description=\"Token expired\"");
+                        }))
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
