@@ -14,7 +14,7 @@ public class DataInitializer implements CommandLineRunner {
     private static final Logger log = LoggerFactory.getLogger(DataInitializer.class);
 
     // Número de páginas de películas a importar desde TMDB
-    private static final int PAGES_TO_IMPORT = 10;
+    private static final int PAGES_TO_IMPORT = 50;
 
     private final MovieImportService movieImportService; // Servicio para importar películas desde TMDB
 
@@ -25,7 +25,8 @@ public class DataInitializer implements CommandLineRunner {
         this.movieImportService = movieImportService;
     }
 
-    // Esto se ejecuta al iniciar la aplicación solo si movies.import.on-startup=true
+    // Esto se ejecuta al iniciar la aplicación solo si
+    // movies.import.on-startup=true
     @Override
     public void run(String... args) {
         if (!importOnStartup) {

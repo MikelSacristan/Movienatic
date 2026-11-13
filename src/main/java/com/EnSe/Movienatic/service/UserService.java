@@ -402,6 +402,7 @@ public class UserService {
                 user.getFavouriteMovies() == null ? 0 : user.getFavouriteMovies().size(),
                 user.getPendingMovies() == null ? 0 : user.getPendingMovies().size(),
                 user.getReviews() == null ? 0 : user.getReviews().size(),
+                user.getMovieLists() == null ? 0 : user.getMovieLists().size(),
                 user.getFollowing() == null ? 0 : user.getFollowing().size(),
                 user.getFollowers() == null ? 0 : user.getFollowers().size());
     }
@@ -424,6 +425,8 @@ public class UserService {
                         .map(review -> new ReviewDto(
                                 review.getId(),
                                 review.getMovie().getId(),
+                                review.getMovie().getTitle(),
+                                review.getMovie().getPosterURL(),
                                 review.getUser().getId(),
                                 review.getUser().getUsername(),
                                 review.getContent(),
@@ -438,6 +441,8 @@ public class UserService {
         return new ReviewDto(
                 review.getId(),
                 review.getMovie().getId(),
+                review.getMovie().getTitle(),
+                review.getMovie().getPosterURL(),
                 review.getUser().getId(),
                 review.getUser().getUsername(),
                 review.getContent(),
@@ -451,6 +456,14 @@ public class UserService {
         return new MovieListDto(
                 movieList.getId(),
                 movieList.getName(),
-                movieList.getDescription());
+                movieList.getDescription(),
+                movieList.getMovies() == null ? 0 : movieList.getMovies().size(),
+                movieList.getMovies() == null
+                        ? List.of()
+                        : movieList.getMovies().stream()
+                                .limit(6)
+                                .map(movie -> movie.getPosterURL())
+                                .filter(url -> url != null)
+                                .toList());
     }
 }

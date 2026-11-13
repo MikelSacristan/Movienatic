@@ -65,6 +65,8 @@ public class MovieService {
                         .map(review -> new ReviewDto(
                                 review.getId(),
                                 review.getMovie().getId(),
+                                review.getMovie().getTitle(),
+                                review.getMovie().getPosterURL(),
                                 review.getUser().getId(),
                                 review.getUser().getUsername(),
                                 review.getContent(),

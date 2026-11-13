@@ -7,6 +7,7 @@ public record UserDetailDto(
         int favouriteCount,
         int pendingCount,
         int reviewCount,
+        int listCount,
         int followingCount,
         int followersCount) {
 }

@@ -9,6 +9,8 @@ import com.fasterxml.jackson.annotation.JsonView;
 public record ReviewDto(
         Long id,
         @JsonView(ReviewView.class) Long movieId,
+        @JsonView(ReviewView.class) String movieTitle,
+        @JsonView(ReviewView.class) String moviePosterURL,
         @JsonView(ReviewView.class) Long userId,
         @JsonView(ReviewView.class) String username,
         @JsonView(ReviewView.class) String content,

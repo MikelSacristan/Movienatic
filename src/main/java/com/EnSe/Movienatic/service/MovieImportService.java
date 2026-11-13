@@ -60,7 +60,8 @@ public class MovieImportService {
         int imported = 0;
 
         // Itera sobre las páginas de películas descubiertas, obteniendo los
-        // resultados de TMDB y guardando en la BD las que no existen todavía
+        // resultados de TMDB y guardando en la BD las que no existen todavía.
+        // Se añaden pausas para respetar el rate limit de TMDB (40 req / 10 s).
         for (int page = 1; page <= pages; page++) {
             TmdbResponse response = tmdbService.fetchDiscoveredMovies(page);
 
@@ -70,6 +71,22 @@ public class MovieImportService {
                 }
                 newMovies.add(toEntity(dto, genreEntities));
                 imported++;
+
+                // Pausa corta entre películas para no saturar el casting de TMDB
+                try {
+                    Thread.sleep(60);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    break;
+                }
+            }
+
+            // Pausa entre páginas
+            try {
+                Thread.sleep(1200);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                break;
             }
         }
 
