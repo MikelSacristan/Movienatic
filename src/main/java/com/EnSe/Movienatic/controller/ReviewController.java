@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -48,6 +49,12 @@ public class ReviewController {
             @PathVariable("reviewId") Long reviewId) {
         userService.deleteReview(userId, reviewId);
         return ResponseEntity.ok().body("Reseña eliminada correctamente");
+    }
+
+    @GetMapping("/votes")
+    public ResponseEntity<?> getVotes(@PathVariable("userId") Long userId,
+            @RequestParam(value = "movieId", required = false) Long movieId) {
+        return ResponseEntity.ok(userService.getReviewVotes(userId, movieId));
     }
 
     @PatchMapping("/{reviewId}/like")

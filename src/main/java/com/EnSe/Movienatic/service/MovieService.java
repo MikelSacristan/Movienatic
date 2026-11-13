@@ -64,6 +64,9 @@ public class MovieService {
                 movie.getReviews().stream()
                         .map(review -> new ReviewDto(
                                 review.getId(),
+                                review.getMovie().getId(),
+                                review.getUser().getId(),
+                                review.getUser().getUsername(),
                                 review.getContent(),
                                 review.getRating(),
                                 reviewLikeRepository.countByReviewAndIsLike(review, true),

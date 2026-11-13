@@ -8,6 +8,9 @@ import com.fasterxml.jackson.annotation.JsonView;
 // DTO para representar una reseña de película
 public record ReviewDto(
         Long id,
+        @JsonView(ReviewView.class) Long movieId,
+        @JsonView(ReviewView.class) Long userId,
+        @JsonView(ReviewView.class) String username,
         @JsonView(ReviewView.class) String content,
         @JsonView(ReviewView.class) Double rating,
         @JsonView(ReviewView.class) Integer likes,

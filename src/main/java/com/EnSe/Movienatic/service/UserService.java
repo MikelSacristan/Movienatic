@@ -10,6 +10,7 @@ import com.EnSe.Movienatic.dto.GenreDto;
 import com.EnSe.Movienatic.dto.MovieDto;
 import com.EnSe.Movienatic.dto.MovieListDto;
 import com.EnSe.Movienatic.dto.ReviewDto;
+import com.EnSe.Movienatic.dto.ReviewVoteDto;
 import com.EnSe.Movienatic.dto.UpdateReviewRequest;
 import com.EnSe.Movienatic.dto.UserDetailDto;
 import com.EnSe.Movienatic.dto.UserBasicDetailsDto;
@@ -254,6 +255,7 @@ public class UserService {
         movieRepository.save(movie);
     }
 
+    @Transactional
     public ReviewDto updateReview(Long userId, Long reviewId, UpdateReviewRequest request) {
         Review review = reviewRepository.findById(reviewId)
                 .orElseThrow(() -> new ReviewNotFoundException(reviewId.toString()));
@@ -279,6 +281,7 @@ public class UserService {
         return toReviewDto(review);
     }
 
+    @Transactional
     public void deleteReview(Long userId, Long reviewId) {
         Review review = reviewRepository.findById(reviewId)
                 .orElseThrow(() -> new ReviewNotFoundException(reviewId.toString()));
@@ -295,6 +298,22 @@ public class UserService {
         movieRepository.save(movie);
     }
 
+    @Transactional(readOnly = true)
+    public List<ReviewVoteDto> getReviewVotes(Long userId, Long movieId) {
+        if (!userRepository.existsById(userId)) {
+            throw new UserNotFoundException(userId.toString());
+        }
+
+        List<ReviewLike> votes = movieId == null
+                ? reviewLikeRepository.findByUserId(userId)
+                : reviewLikeRepository.findByUserIdAndMovieId(userId, movieId);
+
+        return votes.stream()
+                .map(vote -> new ReviewVoteDto(vote.getReview().getId(), vote.getIsLike()))
+                .toList();
+    }
+
+    @Transactional
     public String likeReview(Long userId, Long reviewId) {
         User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId.toString()));
         Review review = reviewRepository.findById(reviewId)
@@ -323,6 +342,7 @@ public class UserService {
         }
     }
 
+    @Transactional
     public String dislikeReview(Long userId, Long reviewId) {
         User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId.toString()));
         Review review = reviewRepository.findById(reviewId)
@@ -354,6 +374,14 @@ public class UserService {
     // Método privado para recalcular la calificación promedio de una película y el
     // número de calificaciones
     private void recalculateMovieRating(Movie movie) {
+        if (movie.getReviews() == null || movie.getReviews().isEmpty()) {
+            // Sin reseñas no hay media: dejamos los campos vacíos para no
+            // incumplir @DecimalMin("0.5") y permitir borrar la última reseña.
+            movie.setAverageRating(null);
+            movie.setNumberOfRatings(0);
+            return;
+        }
+
         Double averageRating = movie.getReviews().stream()
                 .mapToDouble(Review::getRating)
                 .average()
@@ -395,6 +423,9 @@ public class UserService {
                 movie.getReviews().stream()
                         .map(review -> new ReviewDto(
                                 review.getId(),
+                                review.getMovie().getId(),
+                                review.getUser().getId(),
+                                review.getUser().getUsername(),
                                 review.getContent(),
                                 review.getRating(),
                                 reviewLikeRepository.countByReviewAndIsLike(review, true),
@@ -406,6 +437,9 @@ public class UserService {
     private ReviewDto toReviewDto(com.EnSe.Movienatic.model.Review review) {
         return new ReviewDto(
                 review.getId(),
+                review.getMovie().getId(),
+                review.getUser().getId(),
+                review.getUser().getUsername(),
                 review.getContent(),
                 review.getRating(),
                 reviewLikeRepository.countByReviewAndIsLike(review, true),
