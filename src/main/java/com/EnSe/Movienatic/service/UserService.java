@@ -1,12 +1,16 @@
 package com.EnSe.Movienatic.service;
 
 import java.sql.Timestamp;
+import java.text.Collator;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 
 import org.springframework.stereotype.Service;
 
 import com.EnSe.Movienatic.dto.GenreDto;
+import com.EnSe.Movienatic.dto.ListLikeResponse;
 import com.EnSe.Movienatic.dto.MovieDto;
 import com.EnSe.Movienatic.dto.MovieListDto;
 import com.EnSe.Movienatic.dto.ReviewDto;
@@ -17,9 +21,11 @@ import com.EnSe.Movienatic.dto.UserBasicDetailsDto;
 import com.EnSe.Movienatic.model.User;
 import com.EnSe.Movienatic.model.Movie;
 import com.EnSe.Movienatic.model.MovieList;
+import com.EnSe.Movienatic.model.MovieListLike;
 import com.EnSe.Movienatic.model.Review;
 import com.EnSe.Movienatic.model.ReviewLike;
 import com.EnSe.Movienatic.repository.MovieRepository;
+import com.EnSe.Movienatic.repository.MovieListLikeRepository;
 import com.EnSe.Movienatic.repository.MovieListRepository;
 import com.EnSe.Movienatic.repository.ReviewLikeRepository;
 import com.EnSe.Movienatic.repository.ReviewRepository;
@@ -38,15 +44,33 @@ public class UserService {
     private final ReviewRepository reviewRepository;
     private final ReviewLikeRepository reviewLikeRepository;
     private final MovieListRepository movieListRepository;
+    private final MovieListLikeRepository movieListLikeRepository;
 
     public UserService(UserRepository userRepository, MovieRepository movieRepository,
             ReviewRepository reviewRepository, MovieListRepository movieListRepository,
-            ReviewLikeRepository reviewLikeRepository) {
+            ReviewLikeRepository reviewLikeRepository,
+            MovieListLikeRepository movieListLikeRepository) {
         this.userRepository = userRepository;
         this.movieRepository = movieRepository;
         this.reviewRepository = reviewRepository;
         this.movieListRepository = movieListRepository;
         this.reviewLikeRepository = reviewLikeRepository;
+        this.movieListLikeRepository = movieListLikeRepository;
+    }
+
+    // Orden alfabético estable (en español, sin distinguir mayúsculas ni tildes).
+    // Se usa para que las colecciones de tipo Set no cambien de orden entre
+    // peticiones.
+    private static Comparator<String> textComparator() {
+        Collator collator = Collator.getInstance(Locale.forLanguageTag("es"));
+        collator.setStrength(Collator.PRIMARY);
+        return Comparator.nullsLast((left, right) -> collator.compare(left, right));
+    }
+
+    private static Comparator<Movie> movieTitleComparator() {
+        return Comparator
+                .comparing(Movie::getTitle, textComparator())
+                .thenComparing(Movie::getId, Comparator.nullsLast(Long::compareTo));
     }
 
     // Devuelve un bloque de usuarios paginado (por ejemplo 20 por página) ya en
@@ -76,6 +100,7 @@ public class UserService {
         User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
         return user.getPendingMovies()
                 .stream()
+                .sorted(movieTitleComparator())
                 .map(this::toMovieDto)
                 .toList();
     }
@@ -103,6 +128,7 @@ public class UserService {
         User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
         return user.getFavouriteMovies()
                 .stream()
+                .sorted(movieTitleComparator())
                 .map(this::toMovieDto)
                 .toList();
     }
@@ -128,8 +154,45 @@ public class UserService {
     public List<MovieListDto> getLists(Long userId) {
         User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
         return user.getMovieLists().stream()
+                .sorted(Comparator
+                        .comparing(MovieList::getName, textComparator())
+                        .thenComparing(MovieList::getId))
                 .map(this::toMovieListDto)
                 .toList();
+    }
+
+    // Ids de listas a las que el usuario ha dado like
+    @Transactional(readOnly = true)
+    public List<Long> getLikedListIds(Long userId) {
+        return movieListLikeRepository.findByUser_Id(userId).stream()
+                .map(like -> like.getMovieList().getId())
+                .toList();
+    }
+
+    // Da like a una lista (idempotente)
+    @Transactional
+    public ListLikeResponse likeList(Long userId, Long listId) {
+        User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
+        MovieList movieList = movieListRepository.findById(listId)
+                .orElseThrow(() -> new ListNotFoundException(listId));
+
+        if (movieListLikeRepository.findByUser_IdAndMovieList_Id(userId, listId).isEmpty()) {
+            MovieListLike like = new MovieListLike();
+            like.setUser(user);
+            like.setMovieList(movieList);
+            movieListLikeRepository.save(like);
+        }
+
+        return new ListLikeResponse(true, movieListLikeRepository.countByMovieList_Id(listId));
+    }
+
+    // Quita el like de una lista (idempotente)
+    @Transactional
+    public ListLikeResponse unlikeList(Long userId, Long listId) {
+        movieListLikeRepository.findByUser_IdAndMovieList_Id(userId, listId)
+                .ifPresent(movieListLikeRepository::delete);
+
+        return new ListLikeResponse(false, movieListLikeRepository.countByMovieList_Id(listId));
     }
 
     @Transactional(readOnly = true)
@@ -138,6 +201,7 @@ public class UserService {
                 .orElseThrow(() -> new ListNotFoundException(listId));
         return movieList.getMovies()
                 .stream()
+                .sorted(movieTitleComparator())
                 .map(this::toMovieDto)
                 .toList();
     }
@@ -160,6 +224,7 @@ public class UserService {
         if (!user.getMovieLists().contains(movieList))
             throw new ListNotFoundException(listId);
         user.getMovieLists().remove(movieList);
+        movieListLikeRepository.deleteByMovieList_Id(listId);
         movieListRepository.delete(movieList);
         userRepository.save(user);
     }
@@ -461,9 +526,14 @@ public class UserService {
                 movieList.getMovies() == null
                         ? List.of()
                         : movieList.getMovies().stream()
+                                .sorted(movieTitleComparator())
                                 .limit(6)
                                 .map(movie -> movie.getPosterURL())
                                 .filter(url -> url != null)
-                                .toList());
+                                .toList(),
+                movieListLikeRepository.countByMovieList_Id(movieList.getId()),
+                movieList.getUser() == null ? null : movieList.getUser().getId(),
+                movieList.getUser() == null ? null : movieList.getUser().getUsername(),
+                movieList.getUser() == null ? null : movieList.getUser().getPhotoURL());
     }
 }

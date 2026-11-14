@@ -8,5 +8,9 @@ public record MovieListDto(
         String name,
         String description,
         int movieCount,
-        List<String> previewPosters) {
+        List<String> previewPosters,
+        long likeCount,
+        Long userId,
+        String username,
+        String photoURL) {
 }

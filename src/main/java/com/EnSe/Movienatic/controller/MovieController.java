@@ -1,5 +1,6 @@
 package com.EnSe.Movienatic.controller;
 
+import com.EnSe.Movienatic.dto.GenreDto;
 import com.EnSe.Movienatic.dto.MovieDto;
 import com.EnSe.Movienatic.dto.MovieFilter;
 import com.EnSe.Movienatic.dto.MoviePageResponse;
@@ -51,6 +52,11 @@ public class MovieController {
     }
 
     // Solo consulta (GET)
+
+    @GetMapping("/genres")
+    public ResponseEntity<List<GenreDto>> getGenres() {
+        return ResponseEntity.ok(movieService.getGenres());
+    }
 
     @GetMapping("/{movieId}")
     @JsonView(MovieDto.SummaryView.class)

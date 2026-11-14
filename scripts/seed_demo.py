@@ -274,6 +274,29 @@ def main():
                     token=token,
                 )
 
+    print("→ Repartiendo likes entre listas de la comunidad…")
+    public_lists = []
+    for user_id in all_user_ids:
+        status, user_lists = call(base_url, "GET", f"/users/{user_id}/lists")
+        if status == 200 and isinstance(user_lists, list):
+            public_lists.extend(user_lists)
+    print(f"  {len(public_lists)} listas disponibles para votar")
+
+    for username in USERS:
+        user_id = users_by_name.get(username)
+        if user_id is None:
+            continue
+
+        candidates = [item for item in public_lists if item.get("userId") != user_id]
+        sample_size = min(random.randint(4, 10), len(candidates))
+        for movie_list in random.sample(candidates, sample_size):
+            call(
+                base_url,
+                "POST",
+                f"/users/{user_id}/lists/{movie_list['id']}/like",
+                token=token,
+            )
+
     print("→ Repartiendo likes y dislikes entre reseñas…")
     all_reviews = []
     for movie_id in sorted(reviewed_movie_ids):

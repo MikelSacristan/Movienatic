@@ -6,9 +6,13 @@ import com.EnSe.Movienatic.dto.MovieFilter;
 import com.EnSe.Movienatic.dto.ReviewDto;
 import com.EnSe.Movienatic.exception.*;
 import com.EnSe.Movienatic.model.Movie;
+import com.EnSe.Movienatic.repository.GenreRepository;
 import com.EnSe.Movienatic.repository.MovieRepository;
 import com.EnSe.Movienatic.repository.ReviewLikeRepository;
 import com.EnSe.Movienatic.specification.MovieSpecification;
+
+import java.util.Comparator;
+import java.util.List;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -21,10 +25,22 @@ public class MovieService {
 
     private MovieRepository movieRepository;
     private ReviewLikeRepository reviewLikeRepository;
+    private GenreRepository genreRepository;
 
-    public MovieService(MovieRepository movieRepository, ReviewLikeRepository reviewLikeRepository) {
+    public MovieService(MovieRepository movieRepository, ReviewLikeRepository reviewLikeRepository,
+            GenreRepository genreRepository) {
         this.movieRepository = movieRepository;
         this.reviewLikeRepository = reviewLikeRepository;
+        this.genreRepository = genreRepository;
+    }
+
+    // Catálogo completo de géneros (usado por los filtros y la portada)
+    @Transactional(readOnly = true)
+    public List<GenreDto> getGenres() {
+        return genreRepository.findAll().stream()
+                .map(genre -> new GenreDto(genre.getId(), genre.getName()))
+                .sorted(Comparator.comparing(GenreDto::name))
+                .toList();
     }
 
     // Devuelve un bloque de películas paginado (por ejemplo 20 por página) ya en

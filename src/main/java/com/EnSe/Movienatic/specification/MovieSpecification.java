@@ -21,13 +21,6 @@ public class MovieSpecification {
                                 "%" + filter.title().toLowerCase() + "%"));
             }
 
-            if (filter.director() != null && !filter.director().isBlank()) {
-                predicates.add(
-                        criteriaBuilder.like(
-                                criteriaBuilder.lower(root.get("director")),
-                                "%" + filter.director().toLowerCase() + "%"));
-            }
-
             if (filter.genreIds() != null && !filter.genreIds().isEmpty()) {
                 // Unirse a la tabla intermedia movie_genres
                 predicates.add(root.join("genres").get("id").in(filter.genreIds()));
@@ -41,6 +34,16 @@ public class MovieSpecification {
             if (filter.releaseYear() != null) {
                 predicates.add(
                         criteriaBuilder.equal(root.get("releaseYear"), filter.releaseYear()));
+            }
+
+            if (filter.releaseYearFrom() != null) {
+                predicates.add(
+                        criteriaBuilder.greaterThanOrEqualTo(root.get("releaseYear"), filter.releaseYearFrom()));
+            }
+
+            if (filter.releaseYearTo() != null) {
+                predicates.add(
+                        criteriaBuilder.lessThanOrEqualTo(root.get("releaseYear"), filter.releaseYearTo()));
             }
 
             query.distinct(true); // necesario por el JOIN de géneros

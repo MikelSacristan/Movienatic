@@ -2,6 +2,7 @@ package com.EnSe.Movienatic.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -46,10 +47,15 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/auth/**", "/movies", "/movies/**", "/v3/api-docs/**",
+                        .requestMatchers("/auth/**", "/movies", "/movies/**",
+                                "/v3/api-docs/**",
                                 "/swagger-ui/**",
                                 "/swagger-ui.html")
                         .permitAll()
+                        // Consultar usuarios, perfiles, listas, reseñas y conexiones es
+                        // público. Crear, editar o borrar recursos sigue requiriendo
+                        // autenticación.
+                        .requestMatchers(HttpMethod.GET, "/users", "/users/**").permitAll()
                         .anyRequest().authenticated())
                 .headers(headers -> headers
                         .defaultsDisabled() // Elimina X-XSS-Protection: 0, Pragma, Expires, etc.

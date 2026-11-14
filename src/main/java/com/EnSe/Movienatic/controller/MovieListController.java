@@ -76,6 +76,23 @@ public class MovieListController {
         return ResponseEntity.ok(userService.getLists(userId));
     }
 
+    @GetMapping("/lists/liked")
+    public ResponseEntity<?> getLikedLists(@PathVariable("userId") Long userId) {
+        return ResponseEntity.ok(userService.getLikedListIds(userId));
+    }
+
+    @PostMapping("/lists/{listId}/like")
+    public ResponseEntity<?> likeList(@PathVariable("userId") Long userId,
+            @PathVariable("listId") Long listId) {
+        return ResponseEntity.ok(userService.likeList(userId, listId));
+    }
+
+    @DeleteMapping("/lists/{listId}/like")
+    public ResponseEntity<?> unlikeList(@PathVariable("userId") Long userId,
+            @PathVariable("listId") Long listId) {
+        return ResponseEntity.ok(userService.unlikeList(userId, listId));
+    }
+
     @PostMapping("/lists")
     public ResponseEntity<?> addList(@PathVariable("userId") Long userId, @RequestBody MovieListRequest request) {
         userService.addList(userId, request.getName(), request.getDescription());
