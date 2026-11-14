@@ -79,6 +79,7 @@ public class MovieImportService {
 
     // Busca en BD cada género por nombre; si no existe, lo crea. Devuelve un mapa
     // de id de TMDB -> entidad Genre para poder relacionar las películas.
+    // No ponemos @Transancional porque por defecto hay cascada (lo llama importPopularMovies)
     private Map<Long, Genre> ensureGenresExist(Map<Long, String> genreNames) {
         Map<Long, Genre> genreEntities = new HashMap<>();
         if (genreNames == null) {
