@@ -7,6 +7,7 @@ import java.util.stream.Collectors;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import jakarta.validation.ConstraintViolationException;
@@ -23,12 +24,6 @@ public class GlobalExceptionHandler {
         return error(HttpStatus.CONFLICT, e.getMessage());
     }
 
-    // 409: importación de una película que ya está en la BD
-    @ExceptionHandler(DuplicatedMovieException.class)
-    public ResponseEntity<Map<String, Object>> peliculaDuplicada(DuplicatedMovieException e) {
-        return error(HttpStatus.CONFLICT, e.getMessage());
-    }
-
     // 404: recurso que no existe
     @ExceptionHandler(UserNotFoundException.class)
     public ResponseEntity<Map<String, Object>> usuarioNoEncontrado(UserNotFoundException e) {
@@ -36,8 +31,8 @@ public class GlobalExceptionHandler {
     }
 
     // 401: login con credenciales incorrectas
-    @ExceptionHandler(BadCredentialsException.class)
-    public ResponseEntity<Map<String, Object>> credencialesIncorrectas(BadCredentialsException e) {
+    @ExceptionHandler(AuthenticationException.class)
+    public ResponseEntity<Map<String, Object>> credencialesIncorrectas(AuthenticationException e) {
         return error(HttpStatus.UNAUTHORIZED, e.getMessage());
     }
 

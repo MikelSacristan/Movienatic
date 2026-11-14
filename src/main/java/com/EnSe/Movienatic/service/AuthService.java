@@ -59,11 +59,8 @@ public class AuthService {
     // Busca por email y compara la contraseña. Cualquier fallo (no existe o
     // password mal) lanza la MISMA excepción, por seguridad
     public AuthResponse login(LoginDto loginDto) {
-        // Autenticamos al usuario con Spring Security. Si el email o la contraseña son
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        loginDto.email(),
-                        loginDto.password()));
+        // Autenticamos al usuario con Spring Security. Si el email o la contraseña son incorrectos
+        authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(loginDto.email(),loginDto.password()));
 
         User user = userRepository.findByEmail(loginDto.email())
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));

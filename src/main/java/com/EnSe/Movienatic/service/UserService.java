@@ -16,8 +16,7 @@ import com.EnSe.Movienatic.dto.MovieListDto;
 import com.EnSe.Movienatic.dto.ReviewDto;
 import com.EnSe.Movienatic.dto.ReviewVoteDto;
 import com.EnSe.Movienatic.dto.UpdateReviewRequest;
-import com.EnSe.Movienatic.dto.UserDetailDto;
-import com.EnSe.Movienatic.dto.UserBasicDetailsDto;
+import com.EnSe.Movienatic.dto.UserDto;
 import com.EnSe.Movienatic.model.User;
 import com.EnSe.Movienatic.model.Movie;
 import com.EnSe.Movienatic.model.MovieList;
@@ -76,22 +75,24 @@ public class UserService {
     // Devuelve un bloque de usuarios paginado (por ejemplo 20 por página) ya en
     // DTO, con el total y los metadatos de paginación de la Page
     @Transactional(readOnly = true)
-    public Page<UserBasicDetailsDto> getUsers(Pageable pageable) {
-        return this.userRepository.findAll(pageable).map(this::toUserBasicDetailsDto);
+    public Page<UserDto> getUsers(Pageable pageable) {
+        return userRepository.findAll(pageable).map(this::toUserDto);
     }
 
+    @Transactional(readOnly = true)
     public User getUserByName(String name) {
         return userRepository.findByUsername(name).orElseThrow(() -> new UserNotFoundException(name));
     }
 
+    @Transactional(readOnly = true)
     public User getUserById(Long id) {
         return userRepository.findById(id).orElseThrow(() -> new UserNotFoundException(id));
     }
 
     @Transactional(readOnly = true)
-    public UserDetailDto getUserPublicById(Long id) {
+    public UserDto getUserPublicById(Long id) {
         User user = getUserById(id);
-        return toUserDetailDto(user);
+        return toUserDto(user);
     }
 
     // Películas pendientes
@@ -124,6 +125,7 @@ public class UserService {
     }
 
     // Peliculas favoritas
+    @Transactional(readOnly = true)
     public List<MovieDto> getFavourites(Long userId) {
         User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
         return user.getFavouriteMovies()
@@ -141,6 +143,7 @@ public class UserService {
         userRepository.save(user);
     }
 
+    @Transactional
     public void removeFavourite(Long userId, Long movieId) {
         User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
         Movie movie = movieRepository.findById(movieId).orElseThrow(() -> new MovieNotFoundException(movieId));
@@ -151,6 +154,7 @@ public class UserService {
     }
 
     // Listas del usuario
+    @Transactional(readOnly = true)
     public List<MovieListDto> getLists(Long userId) {
         User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
         return user.getMovieLists().stream()
@@ -206,6 +210,7 @@ public class UserService {
                 .toList();
     }
 
+    @Transactional
     public void addList(Long userId, String name, String description) {
         User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
         MovieList movieList = new MovieList();
@@ -217,6 +222,7 @@ public class UserService {
         userRepository.save(user);
     }
 
+    @Transactional
     public void removeList(Long userId, Long listId) {
         User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
         MovieList movieList = movieListRepository.findByUser_IdAndId(userId, listId)
@@ -229,6 +235,7 @@ public class UserService {
         userRepository.save(user);
     }
 
+    @Transactional
     public void addMovieToList(Long userId, Long listId, Long movieId) {
         Movie movie = movieRepository.findById(movieId).orElseThrow(() -> new MovieNotFoundException(movieId));
         MovieList movieList = movieListRepository.findByUser_IdAndId(userId, listId)
@@ -237,6 +244,7 @@ public class UserService {
         movieListRepository.save(movieList);
     }
 
+    @Transactional
     public void removeMovieToList(Long userId, Long listId, Long movieId) {
         Movie movie = movieRepository.findById(movieId).orElseThrow(() -> new MovieNotFoundException(movieId));
         MovieList movieList = movieListRepository.findByUser_IdAndId(userId, listId)
@@ -246,11 +254,12 @@ public class UserService {
     }
 
     // Siguiendo
-    public List<UserBasicDetailsDto> getFollowing(Long userId) {
+    @Transactional(readOnly = true)
+    public List<UserDto> getFollowing(Long userId) {
         User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
         return user.getFollowing()
                 .stream()
-                .map(this::toUserBasicDetailsDto)
+                .map(this::toUserDto)
                 .toList();
     }
 
@@ -263,6 +272,7 @@ public class UserService {
         userRepository.save(user);
     }
 
+    @Transactional
     public void unfollowUser(Long userId, Long unfollowUserId) {
         User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
         User userToUnfollow = userRepository.findById(unfollowUserId)
@@ -273,14 +283,16 @@ public class UserService {
         userRepository.save(user);
     }
 
-    public List<UserBasicDetailsDto> getFollowers(Long userId) {
+    @Transactional(readOnly = true)
+    public List<UserDto> getFollowers(Long userId) {
         User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
         return user.getFollowers()
                 .stream()
-                .map(this::toUserBasicDetailsDto)
+                .map(this::toUserDto)
                 .toList();
     }
 
+    @Transactional(readOnly = true)
     public List<ReviewDto> getReviews(Long userId) {
         User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
         return user.getReviews()
@@ -363,6 +375,7 @@ public class UserService {
         movieRepository.save(movie);
     }
 
+<<<<<<< HEAD
     @Transactional(readOnly = true)
     public List<ReviewVoteDto> getReviewVotes(Long userId, Long movieId) {
         if (!userRepository.existsById(userId)) {
@@ -378,6 +391,8 @@ public class UserService {
                 .toList();
     }
 
+=======
+>>>>>>> mikel
     @Transactional
     public String likeReview(Long userId, Long reviewId) {
         User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId.toString()));
@@ -455,12 +470,8 @@ public class UserService {
         movie.setNumberOfRatings(movie.getReviews().size());
     }
 
-    private UserBasicDetailsDto toUserBasicDetailsDto(User user) {
-        return new UserBasicDetailsDto(user.getId(), user.getUsername(), user.getPhotoURL());
-    }
-
-    private UserDetailDto toUserDetailDto(User user) {
-        return new UserDetailDto(
+    private UserDto toUserDto(User user){
+         return new UserDto(
                 user.getId(),
                 user.getUsername(),
                 user.getPhotoURL(),
