@@ -375,7 +375,6 @@ public class UserService {
         movieRepository.save(movie);
     }
 
-<<<<<<< HEAD
     @Transactional(readOnly = true)
     public List<ReviewVoteDto> getReviewVotes(Long userId, Long movieId) {
         if (!userRepository.existsById(userId)) {
@@ -391,8 +390,6 @@ public class UserService {
                 .toList();
     }
 
-=======
->>>>>>> mikel
     @Transactional
     public String likeReview(Long userId, Long reviewId) {
         User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId.toString()));

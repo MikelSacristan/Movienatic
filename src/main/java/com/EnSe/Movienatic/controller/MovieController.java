@@ -1,5 +1,6 @@
 package com.EnSe.Movienatic.controller;
 
+import java.util.List;
 import com.EnSe.Movienatic.dto.GenreDto;
 import com.EnSe.Movienatic.dto.MovieDto;
 import com.EnSe.Movienatic.dto.MovieFilter;
