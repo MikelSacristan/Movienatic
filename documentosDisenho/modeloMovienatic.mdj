@@ -4343,15 +4343,15 @@
 									},
 									"font": "Arial;13;0",
 									"left": 735,
-									"top": 443,
+									"top": 439,
 									"width": 19.5126953125,
 									"height": 13,
-									"alpha": 0.5235987755982988,
-									"distance": 25,
+									"alpha": 0.5803694723139305,
+									"distance": 21.633307652783937,
 									"hostEdge": {
 										"$ref": "AAAAAAGh3uqiFo9uC3Y="
 									},
-									"text": "0..*"
+									"text": "1..*"
 								},
 								{
 									"_type": "UMLQualifierCompartmentView",
@@ -5231,7 +5231,8 @@
 							"_parent": {
 								"$ref": "AAAAAAGh3uJrHkUP4Vo="
 							},
-							"name": "name"
+							"name": "name",
+							"type": ""
 						}
 					]
 				},
@@ -5269,7 +5270,7 @@
 								"reference": {
 									"$ref": "AAAAAAGgqXhvUP3mVCY="
 								},
-								"multiplicity": "0..*"
+								"multiplicity": "1..*"
 							}
 						}
 					],
@@ -5280,7 +5281,8 @@
 							"_parent": {
 								"$ref": "AAAAAAGh3ufqQmR0Pgs="
 							},
-							"name": "name"
+							"name": "name",
+							"type": ""
 						},
 						{
 							"_type": "UMLAttribute",
@@ -5288,7 +5290,8 @@
 							"_parent": {
 								"$ref": "AAAAAAGh3ufqQmR0Pgs="
 							},
-							"name": "character"
+							"name": "character",
+							"type": ""
 						}
 					]
 				}
