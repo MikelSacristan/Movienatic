@@ -3,8 +3,11 @@ package com.EnSe.Movienatic.controller;
 import com.EnSe.Movienatic.dto.MovieDto;
 import com.EnSe.Movienatic.dto.MovieFilter;
 import com.EnSe.Movienatic.dto.MoviePageResponse;
+import com.EnSe.Movienatic.security.RateLimited;
 import com.EnSe.Movienatic.service.MovieService;
 import com.fasterxml.jackson.annotation.JsonView;
+
+import java.time.temporal.ChronoUnit;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -33,6 +36,7 @@ public class MovieController {
     // aplique SummaryView sobre el contenido sin conflictos con el wrapper de
     // Spring Data (PageImpl).
     @GetMapping("")
+    @RateLimited(capacity = 5, duration = 1, unit = ChronoUnit.MINUTES)
     @JsonView(MovieDto.SummaryView.class)
     public ResponseEntity<MoviePageResponse> getMovies(
             @PageableDefault(size = DEFAULT_PAGE_SIZE) Pageable pageable, MovieFilter filter) {

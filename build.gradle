@@ -47,6 +47,10 @@ dependencies {
 	implementation 'io.jsonwebtoken:jjwt-api:0.12.3'
 	runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.3'
 	runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.3'
+	// Caffeine y Cache
+	implementation 'com.github.ben-manes.caffeine:caffeine'
+	// Buckets para la quota
+	implementation 'com.bucket4j:bucket4j-core:8.10.1'
 }
 
 tasks.named('test') {
