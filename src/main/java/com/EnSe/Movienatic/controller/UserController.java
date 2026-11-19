@@ -1,7 +1,8 @@
 package com.EnSe.Movienatic.controller;
 
 import com.EnSe.Movienatic.dto.UserDto;
-import com.EnSe.Movienatic.dto.MovieDto;
+import com.EnSe.Movienatic.dto.MovieListDto;
+import com.EnSe.Movienatic.dto.MovieListPageResponse;
 import com.EnSe.Movienatic.dto.UserPageResponse;
 import com.EnSe.Movienatic.service.UserService;
 import com.fasterxml.jackson.annotation.JsonView;
@@ -46,7 +47,7 @@ public class UserController {
     }
 
     @GetMapping("/{userId}")
-    @JsonView(MovieDto.DetailView.class)
+    @JsonView(UserDto.DetailView.class)
     public ResponseEntity<UserDto> getUser(@PathVariable("userId") Long userId) {
         return ResponseEntity.ok(userService.getUserPublicById(userId));
     }

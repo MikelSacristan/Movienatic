@@ -7,27 +7,27 @@ import java.util.List;
 
 // DTO para la transferencia de datos de películas, incluyendo información de casting y reseñas
 public record MovieDto(
-                @JsonView(SummaryView.class) Long id,
-                @JsonView(SummaryView.class) String title,
-                @JsonView(DetailView.class) String description,
-                @JsonView(DetailView.class) List<GenreDto> genres,
-                @JsonView(SummaryView.class) int releaseYear,
-                @JsonView({ DetailView.class, CastingView.class }) List<CastMember> casting,
-                @JsonView(SummaryView.class) String posterURL,
-                @JsonView(SummaryView.class) Double averageRating,
-                @JsonView(DetailView.class) Integer numberOfRatings,
-                @JsonView(ReviewView.class) List<ReviewDto> reviews) {
+        @JsonView(SummaryView.class) Long id,
+        @JsonView(SummaryView.class) String title,
+        @JsonView(DetailView.class) String description,
+        @JsonView(DetailView.class) List<GenreDto> genres,
+        @JsonView(SummaryView.class) int releaseYear,
+        @JsonView({ DetailView.class, CastingView.class }) List<CastMember> casting,
+        @JsonView(SummaryView.class) String posterURL,
+        @JsonView(SummaryView.class) Double averageRating,
+        @JsonView(DetailView.class) Integer numberOfRatings,
+        @JsonView(ReviewView.class) List<ReviewDto> reviews) {
 
-        public interface SummaryView {
-        }
+    public interface SummaryView {
+    }
 
-        public interface ReviewView {
-        }
+    public interface ReviewView {
+    }
 
-        public interface CastingView {
-        }
+    public interface CastingView {
+    }
 
-        public interface DetailView extends SummaryView {
-        }
+    public interface DetailView extends SummaryView {
+    }
 
 }

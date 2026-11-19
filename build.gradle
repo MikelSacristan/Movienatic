@@ -51,6 +51,9 @@ dependencies {
 	implementation 'com.github.ben-manes.caffeine:caffeine'
 	// Buckets para la quota
 	implementation 'com.bucket4j:bucket4j-core:8.10.1'
+
+	implementation 'com.github.ben-manes.caffeine:caffeine'
+	implementation 'com.bucket4j:bucket4j-core:8.10.1'
 }
 
 tasks.named('test') {

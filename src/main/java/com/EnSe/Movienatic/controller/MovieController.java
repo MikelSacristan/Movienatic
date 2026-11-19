@@ -38,7 +38,7 @@ public class MovieController {
     // aplique SummaryView sobre el contenido sin conflictos con el wrapper de
     // Spring Data (PageImpl).
     @GetMapping("")
-    @RateLimited(capacity = 5, duration = 1, unit = ChronoUnit.MINUTES)
+    @RateLimited(capacity = 60, duration = 1, unit = ChronoUnit.MINUTES)
     @JsonView(MovieDto.SummaryView.class)
     public ResponseEntity<MoviePageResponse> getMovies(
             @PageableDefault(size = DEFAULT_PAGE_SIZE) Pageable pageable, MovieFilter filter) {

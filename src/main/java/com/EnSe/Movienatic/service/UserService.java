@@ -31,6 +31,7 @@ import com.EnSe.Movienatic.repository.ReviewRepository;
 import com.EnSe.Movienatic.repository.UserRepository;
 
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
 import com.EnSe.Movienatic.exception.*;
@@ -66,12 +67,6 @@ public class UserService {
         return Comparator.nullsLast((left, right) -> collator.compare(left, right));
     }
 
-    private static Comparator<Movie> movieTitleComparator() {
-        return Comparator
-                .comparing(Movie::getTitle, textComparator())
-                .thenComparing(Movie::getId, Comparator.nullsLast(Long::compareTo));
-    }
-
     // Devuelve un bloque de usuarios paginado (por ejemplo 20 por página) ya en
     // DTO, con el total y los metadatos de paginación de la Page
     @Transactional(readOnly = true)
@@ -95,15 +90,13 @@ public class UserService {
         return toUserDto(user);
     }
 
-    // Películas pendientes
+    // Películas pendientes (paginadas: el perfil pide solo las 6 primeras)
     @Transactional(readOnly = true)
-    public List<MovieDto> getPendingMovies(Long userId) {
-        User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
-        return user.getPendingMovies()
-                .stream()
-                .sorted(movieTitleComparator())
-                .map(this::toMovieDto)
-                .toList();
+    public Page<MovieDto> getPendingMovies(Long userId, Pageable pageable) {
+        if (!userRepository.existsById(userId))
+            throw new UserNotFoundException(userId);
+        return movieRepository.findPendingMoviesPageByUserId(userId, pageable)
+                .map(this::toMovieDto);
     }
 
     @Transactional
@@ -124,15 +117,23 @@ public class UserService {
         userRepository.save(user);
     }
 
-    // Peliculas favoritas
+    // Peliculas favoritas (paginadas: el perfil pide solo las 6 primeras)
     @Transactional(readOnly = true)
-    public List<MovieDto> getFavourites(Long userId) {
-        User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
-        return user.getFavouriteMovies()
-                .stream()
-                .sorted(movieTitleComparator())
-                .map(this::toMovieDto)
-                .toList();
+    public Page<MovieDto> getFavourites(Long userId, Pageable pageable) {
+        if (!userRepository.existsById(userId))
+            throw new UserNotFoundException(userId);
+        return movieRepository.findFavouriteMoviesPageByUserId(userId, pageable)
+                .map(this::toMovieDto);
+    }
+
+    @Transactional(readOnly = true)
+    public boolean isFavourite(Long userId, Long movieId) {
+        return movieRepository.existsFavouriteMovie(userId, movieId);
+    }
+
+    @Transactional(readOnly = true)
+    public boolean isPending(Long userId, Long movieId) {
+        return movieRepository.existsPendingMovie(userId, movieId);
     }
 
     @Transactional
@@ -200,14 +201,18 @@ public class UserService {
     }
 
     @Transactional(readOnly = true)
-    public List<MovieDto> getListById(Long userId, Long listId) {
-        MovieList movieList = movieListRepository.findByUser_IdAndId(userId, listId)
+    public Page<MovieDto> getListById(Long userId, Long listId, Pageable pageable) {
+        movieListRepository.findByUser_IdAndId(userId, listId)
                 .orElseThrow(() -> new ListNotFoundException(listId));
-        return movieList.getMovies()
-                .stream()
-                .sorted(movieTitleComparator())
-                .map(this::toMovieDto)
-                .toList();
+        return movieRepository.findMoviesByListIdAndUserId(listId, userId, pageable)
+                .map(this::toMovieDto);
+    }
+
+    // Listas de todos los usuarios ordenadas por likes (portada y Social).
+    @Transactional(readOnly = true)
+    public Page<MovieListDto> getListsOrderedByLikes(Pageable pageable) {
+        return movieListRepository.findAllOrderByLikes(pageable)
+                .map(this::toMovieListDto);
     }
 
     @Transactional
@@ -467,8 +472,8 @@ public class UserService {
         movie.setNumberOfRatings(movie.getReviews().size());
     }
 
-    private UserDto toUserDto(User user){
-         return new UserDto(
+    private UserDto toUserDto(User user) {
+        return new UserDto(
                 user.getId(),
                 user.getUsername(),
                 user.getPhotoURL(),
@@ -526,20 +531,14 @@ public class UserService {
     }
 
     private MovieListDto toMovieListDto(com.EnSe.Movienatic.model.MovieList movieList) {
+        Long listId = movieList.getId();
         return new MovieListDto(
-                movieList.getId(),
+                listId,
                 movieList.getName(),
                 movieList.getDescription(),
-                movieList.getMovies() == null ? 0 : movieList.getMovies().size(),
-                movieList.getMovies() == null
-                        ? List.of()
-                        : movieList.getMovies().stream()
-                                .sorted(movieTitleComparator())
-                                .limit(6)
-                                .map(movie -> movie.getPosterURL())
-                                .filter(url -> url != null)
-                                .toList(),
-                movieListLikeRepository.countByMovieList_Id(movieList.getId()),
+                (int) movieRepository.countMoviesByListId(listId),
+                movieRepository.findPosterUrlsByListId(listId, PageRequest.of(0, 6)),
+                movieListLikeRepository.countByMovieList_Id(listId),
                 movieList.getUser() == null ? null : movieList.getUser().getId(),
                 movieList.getUser() == null ? null : movieList.getUser().getUsername(),
                 movieList.getUser() == null ? null : movieList.getUser().getPhotoURL());

@@ -9,13 +9,13 @@ public record UserDto(
         @JsonView(DetailView.class) int favouriteCount,
         @JsonView(DetailView.class) int pendingCount,
         @JsonView(DetailView.class) int reviewCount,
-        @JsonView(DetailView.class) int movieListCounts,
+        @JsonView(DetailView.class) int listCount,
         @JsonView(DetailView.class) int followingCount,
-        @JsonView(DetailView.class) int followersCount
-    ){
+        @JsonView(DetailView.class) int followersCount) {
+
     public interface SummaryView {
     }
-    
+
     public interface DetailView extends SummaryView {
     }
 

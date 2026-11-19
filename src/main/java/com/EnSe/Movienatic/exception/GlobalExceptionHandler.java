@@ -103,6 +103,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Map<String, Object>> reviewAlreadyExists(ReviewAlreadyExistsException e) {
         return error(HttpStatus.CONFLICT, e.getMessage());
     }
+
     // 429: demasiadas request
     @ExceptionHandler(RateLimitExceededException.class)
     public ResponseEntity<Map<String, Object>> reviewAlreadyExists(RateLimitExceededException e) {

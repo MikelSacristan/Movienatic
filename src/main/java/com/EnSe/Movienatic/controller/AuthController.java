@@ -8,8 +8,6 @@ import com.EnSe.Movienatic.service.AuthService;
 
 import jakarta.validation.Valid;
 
-import java.util.Map;
-
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -40,12 +38,20 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<?> login(@Valid @RequestBody LoginDto loginDto) {
         AuthResponse authResponse = authService.login(loginDto);
-        return ResponseEntity.ok(Map.of("message",
-                "Login del usuario " + authResponse.username() + " correcto" + " y token JWT generado", "token",
-                authResponse.accessToken(), "refreshToken", authResponse.refreshToken(), "email", authResponse.email(),
-                "username",
-                authResponse.username()));
+        return ResponseEntity.ok(authResponse);
     }
+
+    // @PostMapping("/login")
+    // public ResponseEntity<?> login(@Valid @RequestBody LoginDto loginDto) {
+    // AuthResponse authResponse = authService.login(loginDto);
+    // return ResponseEntity.ok(Map.of("message",
+    // "Login del usuario " + authResponse.username() + " correcto" + " y token JWT
+    // generado", "token",
+    // authResponse.accessToken(), "refreshToken", authResponse.refreshToken(),
+    // "email", authResponse.email(),
+    // "username",
+    // authResponse.username()));
+    // }
 
     @PostMapping("/refresh")
     public ResponseEntity<AuthResponse> refresh(@RequestBody RefreshRequest request) {

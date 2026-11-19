@@ -17,11 +17,11 @@ import lombok.Setter;
 @Embeddable
 public class CastMember {
 
-    @JsonView({MovieDto.DetailView.class, MovieDto.CastingView.class})
+    @JsonView({ MovieDto.DetailView.class, MovieDto.CastingView.class })
     @Column(name = "actor", nullable = false)
     private String name;
 
-    @JsonView({MovieDto.DetailView.class, MovieDto.CastingView.class})
+    @JsonView({ MovieDto.DetailView.class, MovieDto.CastingView.class })
     @Column(name = "character_name", nullable = true)
     private String character;
 }

@@ -1,6 +1,9 @@
 package com.EnSe.Movienatic.controller;
 
 import com.EnSe.Movienatic.dto.MovieDto;
+import com.EnSe.Movienatic.dto.MovieListDto;
+import com.EnSe.Movienatic.dto.MovieListPageResponse;
+import com.EnSe.Movienatic.dto.MoviePageResponse;
 import com.EnSe.Movienatic.dto.PendingRequest;
 import com.EnSe.Movienatic.dto.FavouriteRequest;
 import com.EnSe.Movienatic.dto.MovieListRequest;
@@ -8,6 +11,9 @@ import com.EnSe.Movienatic.dto.MovieRequest;
 import com.EnSe.Movienatic.service.UserService;
 import com.fasterxml.jackson.annotation.JsonView;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -24,6 +30,8 @@ public class MovieListController {
 
     private final UserService userService;
 
+    private static final int DEFAULT_PAGE_SIZE = 20;
+
     public MovieListController(UserService userService) {
         this.userService = userService;
     }
@@ -31,8 +39,15 @@ public class MovieListController {
     // Películas pendientes (GET, POST, DELETE)
     @GetMapping("/pending")
     @JsonView(MovieDto.SummaryView.class)
-    public ResponseEntity<?> getPendingMovies(@PathVariable("userId") Long userId) {
-        return ResponseEntity.ok(userService.getPendingMovies(userId));
+    public ResponseEntity<MoviePageResponse> getPendingMovies(@PathVariable("userId") Long userId,
+            @PageableDefault(size = DEFAULT_PAGE_SIZE) Pageable pageable) {
+        return ResponseEntity.ok(toPageResponse(userService.getPendingMovies(userId, pageable)));
+    }
+
+    @GetMapping("/pending/{movieId}")
+    public ResponseEntity<Boolean> isPending(@PathVariable("userId") Long userId,
+            @PathVariable("movieId") Long movieId) {
+        return ResponseEntity.ok(userService.isPending(userId, movieId));
     }
 
     @PostMapping("/pending")
@@ -52,8 +67,15 @@ public class MovieListController {
     // Favoritas (GET, POST, DELETE)
     @GetMapping("/favourites")
     @JsonView(MovieDto.SummaryView.class)
-    public ResponseEntity<?> getFavourites(@PathVariable("userId") Long userId) {
-        return ResponseEntity.ok(userService.getFavourites(userId));
+    public ResponseEntity<MoviePageResponse> getFavourites(@PathVariable("userId") Long userId,
+            @PageableDefault(size = DEFAULT_PAGE_SIZE) Pageable pageable) {
+        return ResponseEntity.ok(toPageResponse(userService.getFavourites(userId, pageable)));
+    }
+
+    @GetMapping("/favourites/{movieId}")
+    public ResponseEntity<Boolean> isFavourite(@PathVariable("userId") Long userId,
+            @PathVariable("movieId") Long movieId) {
+        return ResponseEntity.ok(userService.isFavourite(userId, movieId));
     }
 
     @PostMapping("/favourites")
@@ -74,6 +96,21 @@ public class MovieListController {
     @GetMapping("/lists")
     public ResponseEntity<?> getLists(@PathVariable("userId") Long userId) {
         return ResponseEntity.ok(userService.getLists(userId));
+    }
+
+    // Listas de todos los usuarios ordenadas por likes. No es un concepto
+    // distinto de lista: son las mismas listas que ya se pueden consultar en
+    // cada perfil, solo que agregadas y paginadas para la portada y Social.
+    @GetMapping("/lists/popular")
+    public ResponseEntity<MovieListPageResponse> getListsOrderedByLikes(
+            @PageableDefault(size = 6) Pageable pageable) {
+        Page<MovieListDto> page = userService.getListsOrderedByLikes(pageable);
+        return ResponseEntity.ok(new MovieListPageResponse(
+                page.getContent(),
+                page.getTotalPages(),
+                page.getTotalElements(),
+                page.getNumber(),
+                page.getSize()));
     }
 
     @GetMapping("/lists/liked")
@@ -107,9 +144,11 @@ public class MovieListController {
     }
 
     @GetMapping("/lists/{listId}")
-    public ResponseEntity<?> getListById(@PathVariable("userId") Long userId,
-            @PathVariable("listId") Long listId) {
-        return ResponseEntity.ok(userService.getListById(userId, listId));
+    @JsonView(MovieDto.SummaryView.class)
+    public ResponseEntity<MoviePageResponse> getListById(@PathVariable("userId") Long userId,
+            @PathVariable("listId") Long listId,
+            @PageableDefault(size = DEFAULT_PAGE_SIZE) Pageable pageable) {
+        return ResponseEntity.ok(toPageResponse(userService.getListById(userId, listId, pageable)));
     }
 
     @PostMapping("/lists/{listId}")
@@ -124,5 +163,14 @@ public class MovieListController {
             @RequestBody MovieRequest request) {
         userService.removeMovieToList(userId, listId, request.getId());
         return ResponseEntity.ok().body("Película eliminada de la lista correctamente");
+    }
+
+    private MoviePageResponse toPageResponse(Page<MovieDto> page) {
+        return new MoviePageResponse(
+                page.getContent(),
+                page.getTotalPages(),
+                page.getTotalElements(),
+                page.getNumber(),
+                page.getSize());
     }
 }
