@@ -76,4 +76,19 @@ public class UserController {
     public ResponseEntity<?> getFollowers(@PathVariable("userId") Long userId) {
         return ResponseEntity.ok(userService.getFollowers(userId));
     }
+
+    // Listas de todos los usuarios ordenadas por likes. No es un concepto
+    // distinto de lista: son las mismas listas que ya se pueden consultar en
+    // cada perfil, solo que agregadas y paginadas para la portada y Social.
+    @GetMapping("/lists/popular")
+    public ResponseEntity<MovieListPageResponse> getListsOrderedByLikes(
+            @PageableDefault(size = 6) Pageable pageable) {
+        Page<MovieListDto> page = userService.getListsOrderedByLikes(pageable);
+        return ResponseEntity.ok(new MovieListPageResponse(
+                page.getContent(),
+                page.getTotalPages(),
+                page.getTotalElements(),
+                page.getNumber(),
+                page.getSize()));
+    }
 }
