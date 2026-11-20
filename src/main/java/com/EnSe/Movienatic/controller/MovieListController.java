@@ -14,6 +14,7 @@ import com.fasterxml.jackson.annotation.JsonView;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -21,6 +22,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -116,9 +118,11 @@ public class MovieListController {
     }
 
     @PostMapping("/lists")
-    public ResponseEntity<?> addList(@PathVariable("userId") Long userId, @RequestBody MovieListRequest request) {
-        userService.addList(userId, request.getName(), request.getDescription());
-        return ResponseEntity.ok().body("Lista de películas creada correctamente");
+    public ResponseEntity<MovieListDto> addList(@PathVariable("userId") Long userId,
+            @RequestBody MovieListRequest request) {
+        MovieListDto created = userService.addList(
+                userId, request.getName(), request.getDescription(), request.getMovieIds());
+        return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 
     @DeleteMapping("/lists/{listId}")
@@ -126,6 +130,15 @@ public class MovieListController {
             @PathVariable("listId") Long listId) {
         userService.removeList(userId, listId);
         return ResponseEntity.ok().body("Lista de películas borrada correctamente");
+    }
+
+    @PutMapping("/lists/{listId}")
+    public ResponseEntity<MovieListDto> updateList(@PathVariable("userId") Long userId,
+            @PathVariable("listId") Long listId,
+            @RequestBody MovieListRequest request) {
+        MovieListDto updated = userService.updateList(
+                userId, listId, request.getName(), request.getDescription(), request.getMovieIds());
+        return ResponseEntity.ok(updated);
     }
 
     @GetMapping("/lists/{listId}")

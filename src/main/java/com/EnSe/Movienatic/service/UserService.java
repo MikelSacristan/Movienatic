@@ -3,9 +3,13 @@ package com.EnSe.Movienatic.service;
 import java.sql.Timestamp;
 import java.text.Collator;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
@@ -215,16 +219,52 @@ public class UserService {
                 .map(this::toMovieListDto);
     }
 
+    // Crea una lista con todas sus películas en una sola operación.
+    // Devuelve el DTO de la lista creada para que el cliente no tenga que
+    // volver a pedir todas las listas solo para descubrir el id.
     @Transactional
-    public void addList(Long userId, String name, String description) {
+    public MovieListDto addList(Long userId, String name, String description, List<Long> movieIds) {
         User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
         MovieList movieList = new MovieList();
         movieList.setUser(user);
         movieList.setName(name);
         movieList.setDescription(description);
+        if (movieIds != null && !movieIds.isEmpty()) {
+            movieList.setMovies(resolveMovies(movieIds));
+        }
         user.getMovieLists().add(movieList);
         movieListRepository.save(movieList);
         userRepository.save(user);
+        return toMovieListDto(movieList);
+    }
+
+    // Actualiza los metadatos y, si se envían movieIds, reemplaza el contenido
+    // de la lista. Todo en una sola transacción.
+    @Transactional
+    public MovieListDto updateList(Long userId, Long listId, String name, String description,
+            List<Long> movieIds) {
+        MovieList movieList = movieListRepository.findByUser_IdAndId(userId, listId)
+                .orElseThrow(() -> new ListNotFoundException(listId));
+        if (name != null && !name.isBlank()) {
+            movieList.setName(name.trim());
+        }
+        movieList.setDescription(description);
+        if (movieIds != null) {
+            movieList.getMovies().clear();
+            movieList.getMovies().addAll(resolveMovies(movieIds));
+        }
+        movieListRepository.save(movieList);
+        return toMovieListDto(movieList);
+    }
+
+    // Resuelve una lista de ids de película a entidades, sin duplicados.
+    private Set<Movie> resolveMovies(List<Long> movieIds) {
+        return movieIds.stream()
+                .filter(Objects::nonNull)
+                .distinct()
+                .map(movieId -> movieRepository.findById(movieId)
+                        .orElseThrow(() -> new MovieNotFoundException(movieId)))
+                .collect(Collectors.toCollection(HashSet::new));
     }
 
     @Transactional
@@ -245,8 +285,13 @@ public class UserService {
         Movie movie = movieRepository.findById(movieId).orElseThrow(() -> new MovieNotFoundException(movieId));
         MovieList movieList = movieListRepository.findByUser_IdAndId(userId, listId)
                 .orElseThrow(() -> new ListNotFoundException(listId));
-        movieList.getMovies().add(movie);
-        movieListRepository.save(movieList);
+        // Idempotente: si la película ya está en la lista, no se duplica.
+        boolean alreadyInList = movieList.getMovies().stream()
+                .anyMatch(existing -> existing.getId().equals(movieId));
+        if (!alreadyInList) {
+            movieList.getMovies().add(movie);
+            movieListRepository.save(movieList);
+        }
     }
 
     @Transactional
