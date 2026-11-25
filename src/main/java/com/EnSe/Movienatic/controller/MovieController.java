@@ -15,6 +15,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
+import org.springframework.resilience.annotation.Retryable;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -39,6 +40,16 @@ public class MovieController {
     // Spring Data (PageImpl).
     @GetMapping("")
     @RateLimited(capacity = 60, duration = 1, unit = ChronoUnit.MINUTES)
+    // Se intentará emplear el endpoint 4 veces (original+reintentos). Los reintentos
+    // sucederán a los 0.5 segundos, y en cada uno consecutivo se duplicará el tiempo (0.5,1,2)
+    // Pero habrá una variabiliad en los intentos de 150 ms, y como máximo, estará 5 segundos reintentando
+    @Retryable(
+        maxRetries = 3,
+        delay = 500,
+        multiplier = 2.0,
+        maxDelay = 5000,
+        jitter = 150
+    )
     @JsonView(MovieDto.SummaryView.class)
     public ResponseEntity<MoviePageResponse> getMovies(
             @PageableDefault(size = DEFAULT_PAGE_SIZE) Pageable pageable, MovieFilter filter) {
