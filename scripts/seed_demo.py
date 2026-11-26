@@ -3,7 +3,7 @@
 Puebla Movienatic con usuarios de demostración y actividad entre ellos.
 
 Qué crea (de forma idempotente, se puede ejecutar varias veces):
-  - 20 usuarios demo (contraseña: Password123!)
+  - 40 usuarios demo (contraseña: Password123!)
   - Reseñas de cada usuario sobre películas distintas
   - Favoritas y pendientes
   - Listas de películas con contenido
@@ -13,6 +13,10 @@ Qué crea (de forma idempotente, se puede ejecutar varias veces):
 Uso:
   python3 scripts/seed_demo.py
   python3 scripts/seed_demo.py --base-url http://localhost:8080
+  python3 scripts/seed_demo.py --seed 2027
+
+Cada ejecución añade actividad nueva (el servidor evita duplicados); usa
+--seed si quieres reproducir exactamente la misma selección aleatoria.
 """
 
 import argparse
@@ -45,6 +49,26 @@ USERS = [
     "adrian_fantasia",
     "carmen_musical",
     "guille_belico",
+    "elena_cinefilia",
+    "gonzalo_oscuro",
+    "patricia_pop",
+    "andres_aventura",
+    "sofia_suspense",
+    "javier_historico",
+    "marina_musical",
+    "daniel_distopia",
+    "cristina_comedia",
+    "roberto_roadmovie",
+    "beatriz_biopic",
+    "fernando_fantastico",
+    "silvia_slasher",
+    "oscar_animacion",
+    "natalia_noir",
+    "victor_vintage",
+    "sergio_series",
+    "lorena_latino",
+    "pau_pelicula",
+    "alex_estreno",
 ]
 
 REVIEW_TEMPLATES = [
@@ -118,10 +142,16 @@ def rating():
 def main():
     parser = argparse.ArgumentParser(description="Crea usuarios y actividad de demostración.")
     parser.add_argument("--base-url", default=DEFAULT_BASE_URL)
-    parser.add_argument("--seed", type=int, default=2026)
+    parser.add_argument(
+        "--seed",
+        type=int,
+        default=None,
+        help="Semilla aleatoria. Si se omite, cada ejecución genera actividad distinta.",
+    )
     args = parser.parse_args()
 
-    random.seed(args.seed)
+    if args.seed is not None:
+        random.seed(args.seed)
     base_url = args.base_url.rstrip("/")
 
     print("→ Registrando usuarios demo…")
@@ -146,11 +176,14 @@ def main():
         "/auth/login",
         {"email": f"{USERS[0]}@movienatic.demo", "password": PASSWORD},
     )
-    if status != 200 or not isinstance(login, dict) or "token" not in login:
+    if status != 200 or not isinstance(login, dict):
         print(f"No se pudo iniciar sesión (HTTP {status}): {login}")
         return 1
 
-    token = login["token"]
+    token = login.get("accessToken") or login.get("token")
+    if not token:
+        print(f"La respuesta de login no incluye un token: {login}")
+        return 1
 
     print("→ Cargando usuarios y películas…")
     status, users_page = call(base_url, "GET", "/users?size=1000", token=token)
@@ -174,6 +207,10 @@ def main():
         print("No hay películas en la base de datos.")
         return 1
 
+    # Concentramos parte de las reseñas en una muestra del catálogo para que
+    # las fichas tengan actividad visible sin dispersar todo entre 1000 títulos.
+    focus_movie_ids = movie_ids[:300]
+
     demo_ids = {users_by_name[name] for name in USERS if name in users_by_name}
     reviewed_movie_ids = set()
 
@@ -185,9 +222,10 @@ def main():
 
         print(f"  [{index:02d}/{len(USERS)}] {username} (id {user_id})")
 
-        # Reseñas
-        review_count = random.randint(9, 14)
-        for movie_id in random.sample(movie_ids, review_count):
+        # Reseñas (con más peso en una muestra del catálogo)
+        review_count = random.randint(12, 18)
+        review_pool = focus_movie_ids if random.random() < 0.75 else movie_ids
+        for movie_id in random.sample(review_pool, review_count):
             movie = movie_by_id[movie_id]
             content = random.choice(REVIEW_TEMPLATES).format(title=movie["title"])
             status, _ = call(
@@ -201,7 +239,7 @@ def main():
                 reviewed_movie_ids.add(movie_id)
 
         # Favoritas
-        for movie_id in random.sample(movie_ids, random.randint(5, 9)):
+        for movie_id in random.sample(movie_ids, random.randint(8, 14)):
             call(
                 base_url,
                 "POST",
@@ -211,7 +249,7 @@ def main():
             )
 
         # Pendientes
-        for movie_id in random.sample(movie_ids, random.randint(3, 6)):
+        for movie_id in random.sample(movie_ids, random.randint(5, 9)):
             call(
                 base_url,
                 "POST",
@@ -220,8 +258,9 @@ def main():
                 token=token,
             )
 
-        # Listas creadas (1 o 2 por usuario)
-        chosen_lists = random.sample(LIST_NAMES, random.randint(1, 2))
+        # Listas creadas (2 o 3 por usuario). Las nuevas se crean ya con sus
+        # películas en una sola petición.
+        chosen_lists = random.sample(LIST_NAMES, random.randint(2, 3))
         status, current_lists = call(base_url, "GET", f"/users/{user_id}/lists", token=token)
         existing_names = {
             item.get("name") for item in (current_lists if isinstance(current_lists, list) else [])
@@ -232,14 +271,19 @@ def main():
                     base_url,
                     "POST",
                     f"/users/{user_id}/lists",
-                    {"name": name, "description": description},
+                    {
+                        "name": name,
+                        "description": description,
+                        "movieIds": random.sample(movie_ids, random.randint(6, 10)),
+                    },
                     token=token,
                 )
 
+        # Ampliamos las listas existentes con algunas películas más.
         status, user_lists = call(base_url, "GET", f"/users/{user_id}/lists", token=token)
         if status == 200 and isinstance(user_lists, list):
-            for movie_list in user_lists[:2]:
-                for movie_id in random.sample(movie_ids, random.randint(4, 7)):
+            for movie_list in user_lists:
+                for movie_id in random.sample(movie_ids, random.randint(2, 5)):
                     call(
                         base_url,
                         "POST",
@@ -250,7 +294,7 @@ def main():
 
         # Seguimientos (entre usuarios demo y también hacia usuarios existentes)
         follow_targets = [target for target in all_user_ids if target != user_id]
-        for target_id in random.sample(follow_targets, min(random.randint(4, 8), len(follow_targets))):
+        for target_id in random.sample(follow_targets, min(random.randint(6, 12), len(follow_targets))):
             call(
                 base_url,
                 "POST",
@@ -288,7 +332,7 @@ def main():
             continue
 
         candidates = [item for item in public_lists if item.get("userId") != user_id]
-        sample_size = min(random.randint(4, 10), len(candidates))
+        sample_size = min(random.randint(6, 14), len(candidates))
         for movie_list in random.sample(candidates, sample_size):
             call(
                 base_url,
@@ -326,7 +370,7 @@ def main():
             for review in all_reviews
             if review.get("userId") != user_id and review["id"] not in voted_ids
         ]
-        sample_size = min(random.randint(10, 20), len(candidates))
+        sample_size = min(random.randint(15, 30), len(candidates))
         for review in random.sample(candidates, sample_size):
             action = "like" if random.random() < 0.78 else "dislike"
             call(

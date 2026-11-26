@@ -2,7 +2,6 @@ package com.EnSe.Movienatic.controller;
 
 import com.EnSe.Movienatic.dto.MovieDto;
 import com.EnSe.Movienatic.dto.MovieListDto;
-import com.EnSe.Movienatic.dto.MovieListPageResponse;
 import com.EnSe.Movienatic.dto.MoviePageResponse;
 import com.EnSe.Movienatic.dto.PendingRequest;
 import com.EnSe.Movienatic.dto.FavouriteRequest;

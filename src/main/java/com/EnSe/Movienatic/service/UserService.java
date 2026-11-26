@@ -74,8 +74,12 @@ public class UserService {
     // Devuelve un bloque de usuarios paginado (por ejemplo 20 por página) ya en
     // DTO, con el total y los metadatos de paginación de la Page
     @Transactional(readOnly = true)
-    public Page<UserDto> getUsers(Pageable pageable) {
-        return userRepository.findAll(pageable).map(this::toUserDto);
+    public Page<UserDto> getUsers(String search, Pageable pageable) {
+        String term = search == null ? "" : search.trim();
+        if (term.isEmpty()) {
+            return userRepository.findAll(pageable).map(this::toUserDto);
+        }
+        return userRepository.findByUsernameContainingIgnoreCase(term, pageable).map(this::toUserDto);
     }
 
     @Transactional(readOnly = true)

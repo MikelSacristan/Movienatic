@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -35,8 +36,9 @@ public class UserController {
     @GetMapping("")
     @JsonView(UserDto.SummaryView.class)
     public ResponseEntity<UserPageResponse> getUsers(
+            @RequestParam(value = "search", required = false) String search,
             @PageableDefault(size = DEFAULT_PAGE_SIZE) Pageable pageable) {
-        Page<UserDto> page = userService.getUsers(pageable);
+        Page<UserDto> page = userService.getUsers(search, pageable);
         UserPageResponse response = new UserPageResponse(
                 page.getContent(),
                 page.getTotalPages(),
